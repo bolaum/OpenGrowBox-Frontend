@@ -32,13 +32,13 @@ jobs:
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan github.com >> ~/.ssh/known_hosts
 
-      - name: Checkout Home Assistant Repository
+      - name: Clone Home Assistant Repository via SSH
         run: |
           git clone git@github.com:OpenGrow-Box/OpenGrowBox-HA.git ha-repo
 
       - name: Copy Built File to HA Repo
         run: |
-          rm -f ha-repo/custom_components/opengrowbox/frontend/static/static/js/main.js  # Altes main.js löschen
+          rm -f ha-repo/custom_components/opengrowbox/frontend/static/static/js/main.js
           cp frontend-repo/dist/assets/index*.js ha-repo/custom_components/opengrowbox/frontend/static/static/js/main.js
 
       - name: Commit and Push Changes
