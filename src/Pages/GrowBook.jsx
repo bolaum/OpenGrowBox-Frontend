@@ -40,27 +40,20 @@ export default GrowBook;
 
 const MainContainer = styled.div`
   overflow-y: auto;
-  /* Padding hinzufügen, das der Höhe deiner BottomBar entspricht */
-  padding-bottom: 6.5vh;
-
+  padding-bottom: 10vh;
   @media (max-width: 480px) {
     transition: color 0.3s ease;
   }
-
   @media (max-width: 768px) {
-    /* Hier ggf. anpassen, wenn die BottomBar höher ist */
-    padding-bottom: 10vh;
-    transition: color 0.3s ease;
+    height: calc(100vh - 12.0vh);
   }
-
   @media (max-width: 1024px) {
-    height: calc(100vh - 14.5vh);
   }
 `;
 
 const InnerContent= styled.div`
 display:flex;
-
+height:100%;
 gap:0.5rem;
 margin:1rem;
 
@@ -84,7 +77,7 @@ display:flex;
 flex-direction:column;
 gap:1rem;
 width:40vw;
-height:92%;;
+height: 100%;
 min-width:180px;
 
     @media (max-width: 1024px) {

@@ -89,7 +89,7 @@ display:flex;
 flex-direction:column;
 gap:1rem;
 width:40vw;
-height:92%;;
+height: 100%;
 min-width:180px;
 
     @media (max-width: 1024px) {

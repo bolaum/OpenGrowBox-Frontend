@@ -5,29 +5,15 @@ const GlobalStateContext = createContext();
 
 const initialState = {
   Conf: {
+    hassServer:"",
     haToken: null,
     hass:null,
-  },
-  Controls: {
-    isSidebarLeftOpen: false,
-    deviceControl: false,
-    Notification:null,
-    Notifcations:['OFF', 'ON'],
   },
   hass:{},
   hassWS:{},
   Design: {
     theme: 'Main',
     availableThemes: ['Main', 'Unicorn', 'Hacky','BookWorm','BlueOcean','CyperPunk','Darkness'],
-  },
-  Data: {
-    chartData: {},
-    userNotes: [],
-    PlantDay: {
-      breaderHowLong: 0,
-      growStart: '',
-      flowerSwitch: '',
-    },
   },
 };
 
@@ -38,6 +24,8 @@ export const GlobalStateProvider = ({ children }) => {
     return storedState ? JSON.parse(storedState) : initialState;
   });
   const [accessToken,setAccessToken] = useState(null)
+  const [srvADDR,setSrvADDR] = useState(null)
+  const [HASS,setHASS] = useState(null)
   // Effekt zum Speichern des Zustands im localStorage bei Änderungen
   
   const setHASSAccessToken = (token) => {
@@ -45,9 +33,36 @@ export const GlobalStateProvider = ({ children }) => {
     setDeep("Conf.haToken",token)
   }
 
+  const setHASSServer = (addr) => {
+    if(addr === null) return
+    setSrvADDR(addr)
+    setDeep("Conf.hassServer",addr)
+  }
+
+  const setHass = (hassObject) => {
+    if(hassObject){
+      setHASS(hassObject)
+    }
+  }
+
   useEffect(() => {
     if (import.meta.env.PROD) {
-      const hass = document.querySelector('home-assistant')?.hass;
+      const hass = getHASS();
+      setHass(hass)
+      const haServer = hass.auth.data.hassUrl
+      if (haServer !== null) {
+        setHASSServer(haServer)
+      }
+    }else{
+      setHASSServer('http://10.1.1.253:8123')
+    }
+
+  }, [srvADDR]);
+
+  useEffect(() => {
+    if (import.meta.env.PROD) {
+      const hass = getHASS();
+      setHass(hass)
       const accessToken = hass.auth.data.access_token
       if (accessToken) {
         setHASSAccessToken(accessToken)
@@ -61,7 +76,6 @@ export const GlobalStateProvider = ({ children }) => {
 
   useEffect(() => {
     localStorage.setItem('globalOGBState', JSON.stringify(state));
-    localStorage.setItem('globalState', JSON.stringify(state));
   }, [state]);
 
   const updateState = (path, value) => {
@@ -99,7 +113,7 @@ export const GlobalStateProvider = ({ children }) => {
 
   const getHASS = () => {
         if (import.meta.env.PROD) {
-            hass = document.querySelector('home-assistant')?.hass;
+            const hass = document.querySelector('home-assistant')?.hass;
             return hass
         }else{
             console.error("NO HASS Object in Dev-Mode")
@@ -116,7 +130,7 @@ export const GlobalStateProvider = ({ children }) => {
         getDeep,
         setDeep,
         getHASS,
-        accessToken,
+        HASS,
       }}
     >
       {children}

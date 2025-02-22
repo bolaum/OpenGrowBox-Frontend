@@ -16,7 +16,7 @@ const Interface = () => {
   const handleProdView = () => {
     const hass = getHASS()
     const accessToken = hass.auth.data.access_token
-    console.log("accessToken",accessToken)
+
     if(accessToken){
       setToken(accessToken)
     }else{

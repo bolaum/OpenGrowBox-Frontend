@@ -1,0 +1,41 @@
+name: Deploy Frontend to HA Repo
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Frontend Repository
+        uses: actions/checkout@v3
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Build Frontend
+        run: npm run build
+
+      - name: Checkout Home Assistant Repository
+        uses: actions/checkout@v3
+        with:
+          repository: OpenGrow-Box/OpenGrowBox-HA
+          token: ${{ secrets.HA_DEPLOY_TOKEN }}
+          path: ha-repo
+
+      - name: Copy Built File to HA Repo
+        run: |
+          rm -f ha-repo/custom_components/opengrowbox/frontend/static/static/js/main.js  # Altes main.js löschen
+          cp dist/assets/index*.js ha-repo/custom_components/opengrowbox/frontend/static/static/js/main.js
+
+
+      - name: Commit and Push Changes
+        run: |
+          cd ha-repo
+          git config --global user.name "OpenGrowBox"
+          git config --global user.email "info@opengrowbox.net"
+          git add .
+          git commit -m "Deploy frontend build from OpenGrowBox-Frontend"
+          git push

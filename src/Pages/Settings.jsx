@@ -28,21 +28,14 @@ export default Settings;
 
 const MainContainer = styled.div`
   overflow-y: auto;
-  /* Padding hinzufügen, das der Höhe deiner BottomBar entspricht */
-  padding-bottom:1rem;
-
+  padding-bottom: 10vh;
   @media (max-width: 480px) {
     transition: color 0.3s ease;
   }
-
   @media (max-width: 768px) {
-    /* Hier ggf. anpassen, wenn die BottomBar höher ist */
-    height: calc(100vh - 10vh);
-    transition: color 0.3s ease;
+    height: calc(100vh - 12.0vh);
   }
-
   @media (max-width: 1024px) {
-    height: calc(100vh - 9.0vh);
   }
 `;
 
@@ -73,8 +66,8 @@ flex-direction:column;
 justify-content:center;
 align-items:center;
 gap:1rem;
-width:100vh;
-height:92%;
+width:100vw;
+
 min-width:180px;
 
     @media (min-width: 1024px) {

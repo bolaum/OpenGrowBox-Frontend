@@ -5,14 +5,23 @@ import { useHomeAssistant } from '../Context/HomeAssistantContext';
 import { useGlobalState } from '../Context/GlobalContext';
 import { FaCannabis } from 'react-icons/fa';
 
+const LoadingIndicator = () => (
+  <LoadingContainer>
+    <FaCannabis className="loading-icon" />
+    <p>Smoking data...</p>
+  </LoadingContainer>
+);
+
 const SensorChart = ({ sensorId, minThreshold = 0, maxThreshold = 2000, title = 'Sensor', unit = '' }) => {
   const getDefaultDate = (offset = 0) => {
     const date = new Date(Date.now() + offset);
     return date.toISOString();
   };
 
-  const { srvAddr,currentRoom } = useHomeAssistant();
-  const { accessToken } = useGlobalState();
+  const {currentRoom} = useHomeAssistant()
+  const {state} = useGlobalState();
+  const srvAddr = state?.Conf?.hassServer
+  const accessToken = state?.Conf?.haToken
 
   const [startDate, setStartDate] = useState(getDefaultDate());
   const [endDate, setEndDate] = useState(getDefaultDate());
@@ -145,6 +154,7 @@ const SensorChart = ({ sensorId, minThreshold = 0, maxThreshold = 2000, title = 
         ))}
       </ChartMenu>
       <Chart>
+
         {loading ? (
           <LoadingWrapper>
             Smoking Data <LoadingIcon />
@@ -169,9 +179,9 @@ const ChartWrapper = styled.div`
   box-shadow: var(--main-shadow-art);
   width: 100%;
   height: 100%;
-  min-height: 400px;
+  min-height: 15rem;
   @media (max-width: 768px) {
-    min-height: 300px;
+    min-height: 20rem;
   }
 `;
 
@@ -198,9 +208,9 @@ const Chart = styled.div`
   width: 100%;
   position: relative;
   .echarts-for-react {
-    min-height: 300px;
+    min-height: 15rem;
     @media (max-width: 768px) {
-      min-height: 250px;
+      min-height: 12rem;
     }
   }
 `;

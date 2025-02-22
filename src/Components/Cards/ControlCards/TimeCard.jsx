@@ -9,7 +9,7 @@ const TimeCard = ({ entities }) => {
   }
 
   const handleTimeChange = async (entity, value) => {
-    console.log(`Updating ${entity.entity_id} to ${value}`);
+
     if (connection) {
       try {
         await connection.sendMessagePromise({
@@ -21,7 +21,7 @@ const TimeCard = ({ entities }) => {
             time: value,
           },
         });
-        console.log(`Updated ${entity.entity_id} successfully!`);
+
       } catch (error) {
         console.error('Error updating entity:', error);
       }

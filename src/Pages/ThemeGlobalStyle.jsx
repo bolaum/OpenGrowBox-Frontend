@@ -64,6 +64,7 @@ const GlobalStyle = createGlobalStyle`
 
     --main-arrow-up: rgba(64, 226, 10, 0.82);
     --main-arrow-down: rgba(234, 24, 17, 0.84);
+
     --cannabis-active-color: #81C784;
     --cannabis-inactive-color: #4CAF50;
     
@@ -132,12 +133,16 @@ const GlobalStyle = createGlobalStyle`
 const GlobalUnicornStyle = createGlobalStyle`
   :host {
     /* Kräftige Pastellfarben, etwas verspielt/unicorn-mäßig */
+    --primary-color:rgb(176, 187, 193);
+    --secondary-color:rgb(245, 121, 63);
+   
     --primary-accent: #ff9de2;
     --secondary-accent: #c4a2fc;
 
     --main-text-color: #ffffff;
     --second-text-color: #fce4ff;
-
+    --error-text-color:rgba(225, 19, 19, 0.82); 
+    
     --primary-button-color: #ff9de2;
     --secondary-button-color: #c4a2fc;
 
@@ -149,7 +154,7 @@ const GlobalUnicornStyle = createGlobalStyle`
     --second-bg-color: #f5d6ff;
 
     --main-unit-color: #ff9de2;
-
+    --main-value-color: rgba(119, 165, 235, 0.9);
     --main-bg-nav-color: rgba(177, 157, 255, 0.9);
     --main-bg-card-color: rgba(196, 162, 252, 0.2);
 
@@ -214,7 +219,8 @@ const GlobalHackyStyle = createGlobalStyle`
 
     --main-text-color: #00ff00;
     --second-text-color: #0aff89;
-
+    --error-text-color:rgba(225, 19, 19, 0.82);
+    
     --primary-button-color: #0aff89;
     --secondary-button-color: #00ff00;
 
@@ -226,6 +232,7 @@ const GlobalHackyStyle = createGlobalStyle`
     --second-bg-color: #1a1a1a;
 
     --main-unit-color: #00ff00;
+    --main-value-color: rgba(219, 239, 226, 0.9);
 
     --main-bg-nav-color: rgba(13, 13, 13, 0.9);
     --main-bg-card-color: rgba(40, 40, 40, 0.5);
@@ -283,7 +290,6 @@ const GlobalHackyStyle = createGlobalStyle`
   }
 `;
 
-
 const GlobalWhiteStyle = createGlobalStyle`
   :host {
     --primary-color: #222;
@@ -291,6 +297,7 @@ const GlobalWhiteStyle = createGlobalStyle`
 
     --primary-accent: #007bff;
     --secondary-accent: #17a2b8;
+    --error-text-color:rgba(225, 19, 19, 0.82);
 
     --main-text-color: #000;
     --second-text-color: #555;
@@ -375,7 +382,6 @@ const GlobalWhiteStyle = createGlobalStyle`
   }
 `;
 
-
 const GlobalOceanStyle = createGlobalStyle`
   :host {
     --primary-accent: #0099cc;
@@ -383,6 +389,7 @@ const GlobalOceanStyle = createGlobalStyle`
 
     --main-text-color: #ffffff;
     --second-text-color: #b3e0ff;
+    --error-text-color:rgba(225, 19, 19, 0.82);
 
     --primary-button-color: #0099cc;
     --secondary-button-color: #33cccc;
@@ -394,6 +401,7 @@ const GlobalOceanStyle = createGlobalStyle`
     --second-bg-color: #004080;
 
     --main-unit-color: #33cccc;
+    --main-value-color: rgba(219, 239, 226, 0.9);
 
     --main-bg-nav-color: rgba(0, 38, 77, 0.9);
     --main-bg-card-color: rgba(0, 64, 128, 0.5);
@@ -451,7 +459,6 @@ const GlobalOceanStyle = createGlobalStyle`
   }
 `;
 
-
 const GlobalCyberStyle = createGlobalStyle`
   :host {
     --primary-accent: #ff0090;
@@ -459,6 +466,7 @@ const GlobalCyberStyle = createGlobalStyle`
 
     --main-text-color: #00eaff;
     --second-text-color: #ff0090;
+    --error-text-color:rgba(225, 19, 19, 0.82);
 
     --primary-button-color: #ff0090;
     --secondary-button-color: #00eaff;
@@ -470,6 +478,7 @@ const GlobalCyberStyle = createGlobalStyle`
     --second-bg-color: #2a0034;
 
     --main-unit-color: #ff0090;
+    --main-value-color: rgba(219, 239, 226, 0.9);
 
     --main-bg-nav-color: rgba(13, 0, 39, 0.9);
     --main-bg-card-color: rgba(42, 0, 52, 0.5);
@@ -527,7 +536,6 @@ const GlobalCyberStyle = createGlobalStyle`
   }
 `;
 
-
 const GlobalDarkModeStyle = createGlobalStyle`
   :host {
     --primary-accent: #1db954;
@@ -535,6 +543,7 @@ const GlobalDarkModeStyle = createGlobalStyle`
 
     --main-text-color: #ffffff;
     --second-text-color: #b3b3b3;
+    --error-text-color:rgba(225, 19, 19, 0.82);
 
     --primary-button-color: #1db954;
     --secondary-button-color: #535353;
@@ -546,12 +555,14 @@ const GlobalDarkModeStyle = createGlobalStyle`
     --second-bg-color: #181818;
 
     --main-unit-color: #1db954;
+    --main-value-color: rgba(219, 239, 226, 0.9);
+
 
     --main-bg-nav-color: rgba(18, 18, 18, 0.9);
     --main-bg-card-color: rgba(24, 24, 24, 0.5);
 
     --main-arrow-up: #1db954;
-    --main-arrow-down: #b3b3b3;
+    --main-arrow-down:rgb(213, 26, 26);
     --cannabis-active-color: #1db954;
     --cannabis-inactive-color: #535353;
 

@@ -36,25 +36,8 @@ export const HomeAssistantProvider = ({ children }) => {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [srvAddr, setSrvAddr] = useState("")
 
-  let baseUrl = ""
-
+  let baseUrl = getDeep("Conf.hassServer")
   const token = getDeep('Conf.haToken');
-  
-  if (import.meta.env.PROD) {
-    const hass = getHASS();
-    const wsUrl = hass.connection.socket.url;
-    baseUrl = convertWsToHttp(wsUrl);
-  }else{
-    baseUrl = 'http://10.1.1.253:8123';
-
-  }
-
-  useEffect(() => {
-    setSrvAddr(baseUrl)
-    
-  },[baseUrl])
-
-
   const stateURL = `${baseUrl}/api/states`;
 
   useEffect(() => {

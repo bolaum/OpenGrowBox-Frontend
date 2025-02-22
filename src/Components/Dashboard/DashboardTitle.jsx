@@ -48,7 +48,7 @@ const DashboardTitle = ({firstText,secondText,thirdText}) => {
         </motion.div>
       </AnimatePresence>
 
-      <Version>v 1.0</Version>
+
     </TitleContainer>
   );
 };
@@ -70,12 +70,6 @@ const CannabisIcon = () => (
   </motion.span>
 );
 
-const Version = styled.div`
-  font-size: 0.7rem;
-  padding: 0.1rem;
-  border-bottom: 1px solid white;
-  cursor: pointer;
-`;
 
 const TitleContainer = styled.div`
   display: flex;

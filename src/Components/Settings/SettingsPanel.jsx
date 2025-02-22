@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import styled from 'styled-components';
 import { useGlobalState } from '../Context/GlobalContext';
 import { useNavigate } from 'react-router-dom';
+import SettingsFooter from './SettingsFooter';
 // Definiere deine Themes mit den entsprechenden CSS-Variablen
 
 
@@ -19,12 +20,8 @@ const SettingsPanel = () => {
   }, [currentTheme]);
   
 
-  const clearToken = () => {
-    localStorage.removeItem("haToken")
-    setDeep('Conf.haToken',null);
-    navigate('/')
-  }
 
+  
   const clearAppStates = () => {
     localStorage.removeItem("globalState")
     localStorage.removeItem("globalOGBState")
@@ -54,9 +51,11 @@ const SettingsPanel = () => {
       {/* Weitere Einstellungen (z.B. Mobile Notification) können hier folgen */}
       <MenuControl>
 
-        <Title>Clear Token</Title>
-        <MenuItem onClick={clearToken}>🗑️ Clear Token</MenuItem>
-        <MenuItem onClick={clearAppStates}>🗑️ Clear Global State</MenuItem>
+        <Title>Config</Title>
+        <MenuItem onClick={clearAppStates}>🗑️ Clear App State</MenuItem>
+        <MenuFooter>
+            <SettingsFooter/>
+        </MenuFooter>
       </MenuControl>
     </MainContainer>
   );
@@ -68,7 +67,7 @@ const MainContainer = styled.div`
   display: flex;
   flex-direction: column;
   gap: 0.3rem;
-  height: 85vh;
+  min-height: 75vh;
   padding: 1rem;
   border-radius: 25px;
   background: var(--main-bg-card-color);
@@ -103,9 +102,21 @@ const ThemeButton = styled.button`
 `;
 
 const MenuControl = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap:1rem;
+  flex-grow: 1;
   margin-top: 1rem;
-  /* Weitere Styles für zusätzliche Controls */
 `;
+
+const MenuFooter = styled.div`
+  margin-top: auto; /* Drückt den Footer nach unten */
+  padding-top: 1rem;
+  text-align: center;
+  color: var(--main-text-color);
+  border-top: 1px solid grey;
+`;
+
 const MenuItem = styled.button`
   padding: 8px 16px;
   color: var(--main-text-color);

@@ -49,8 +49,7 @@ export default StatCard;
 // Styled Components
 //
 const StatsContainer = styled.div`
-  display:f
-  width:100%;
+
 `;
 
 const ValueBox = styled.div`
@@ -86,7 +85,7 @@ const StatsTitle = styled.div`
 const StatsValue = styled.div`
   font-size: 1.2rem;
   font-weight: bold;
-  color: var(--second-unit-color);
+  color: var(--main-value-color);
 
   @media (max-width: 480px) {
     flex-direction: column;
@@ -125,7 +124,7 @@ const StatsUnit = styled.div`
 `;
 
 const ArrowIcon = styled.div`
-  color: ${(props) => props.color || 'var(--main-text-color)'};
+  color: ${(props) => props.color || 'blue'};
   font-size: 1.2rem;
 
   @media (max-width: 768px) {

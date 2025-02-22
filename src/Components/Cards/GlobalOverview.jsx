@@ -4,7 +4,7 @@ import styled from 'styled-components';
 import formatLabel from '../../misc/formatLabel';
 
 const GlobalOverview = () => {
-  const { entities, currentRoom, connection } = useHomeAssistant();
+  const { entities, currentRoom } = useHomeAssistant();
   const [neededSensors, setNeededSensors] = useState([]);
   const [remainingDays, setRemainingDays] = useState('');
 
@@ -53,10 +53,10 @@ const GlobalOverview = () => {
     <OverViewContainer>
       {neededSensors.map(sensor => (
         <div key={sensor.id}>
-          {sensor.friendlyName}: {formatTime(sensor.value)}
+          Next Food Intervall: {formatTime(sensor.value)}
         </div>
       ))}
-      <div>Harvest Time in : {remainingDays} Days</div>
+    <div>Harvest Time in : {remainingDays ? Math.floor(parseFloat(remainingDays)) : 'N/A'} Days</div>
 
     </OverViewContainer>
   );

@@ -145,8 +145,8 @@ const ModalOverlay = styled.div`
 
 const ModalContent = styled.div`
   background: #fff;
-  width: 75%;
-  height: 65%;
+  width: 65%;
+  height: 55%;
   position: relative;
   display: flex;
   flex-direction: column;

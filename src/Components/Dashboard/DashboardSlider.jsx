@@ -59,7 +59,7 @@ const DashboardSlider = () => {
     if (isPlaying) {
       interval = setInterval(() => {
         handleNext();
-      }, 10000);
+      }, 20000);
     }
     return () => {
       if (interval) {

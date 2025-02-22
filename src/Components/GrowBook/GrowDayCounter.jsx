@@ -23,7 +23,7 @@ const GrowDayCounter = () => {
 
   // Aktualisieren von Zahlensensoren (z. B. Breeder Bloom Days)
   const handleNumberUpdate = async (entityId, value) => {
-    console.log(`Updating ${entityId} to ${value}`);
+
     if (connection) {
       try {
         await connection.sendMessagePromise({
@@ -32,7 +32,7 @@ const GrowDayCounter = () => {
           service: 'set_value',
           service_data: { entity_id: entityId, value },
         });
-        console.log(`Updated ${entityId} successfully!`);
+
       } catch (error) {
         console.error('Error updating entity:', error);
       }
@@ -41,7 +41,7 @@ const GrowDayCounter = () => {
 
   // Aktualisieren von Datumssensoren
   const handleDateUpdate = async (entityId, value) => {
-    console.log(`Updating ${entityId} to ${value}`);
+
     if (connection) {
       try {
         await connection.sendMessagePromise({
@@ -50,7 +50,7 @@ const GrowDayCounter = () => {
           service: 'update_date',
           service_data: { entity_id: entityId, date: value },
         });
-        console.log(`Updated ${entityId} successfully!`);
+
       } catch (error) {
         console.error('Error updating entity:', error);
       }
@@ -158,9 +158,10 @@ const MotionContainer = motion(styled.div``);
 const CounterCard = styled.div`
   background: var(--main-bg-card-color);
   border-radius: 16px;
-  padding: 1.5rem;
-  max-width: 400px;
-  margin: 2rem auto;
+  padding: 0.7rem;
+  max-width: 22rem;
+  min-height:10rem;
+  margin: 0.5rem auto;
   box-shadow: var(--main-shadow-art);
   color: var(--main-text-color);
   font-family: 'Arial', sans-serif;
@@ -168,13 +169,13 @@ const CounterCard = styled.div`
 
 const CardHeader = styled.div`
   border-bottom: 2px solid var(--primary-accent);
-  padding-bottom: 0.5rem;
-  margin-bottom: 1rem;
+  padding-bottom: 0.25rem;
+  margin-bottom: 0.5rem;
   text-align: center;
 `;
 
 const CardTitle = styled.h2`
-  font-size: 1.5rem;
+  font-size: 1.2rem;
   margin: 0;
 `;
 
@@ -191,7 +192,7 @@ const InputGroup = styled.div`
 
 const InputLabel = styled.label`
   font-size: 0.9rem;
-  margin-bottom: 0.3rem;
+  margin-bottom: 0.2rem;
   font-weight: 600;
 `;
 
@@ -199,7 +200,8 @@ const StyledInput = styled.input`
   padding: 0.6rem;
   border: 1px solid var(--primary-accent);
   border-radius: 8px;
-  font-size: 1rem;
+  font-size: 0.87rem;
+  font-weight: 600;
   background: #fff;
   color: #333;
   transition: all 0.3s ease;
@@ -225,10 +227,12 @@ const DisplayItem = styled.div`
 `;
 
 const DisplayLabel = styled.span`
+  color:var(--secondary-color);
   font-size: 0.85rem;
 `;
 
 const DisplayValue = styled.span`
   font-size: 1rem;
   font-weight: bold;
+  color:var(--primary-accent);
 `;

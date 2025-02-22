@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import ReactECharts from 'echarts-for-react';
-import { useHomeAssistant } from '../Context/HomeAssistantContext';
+
 import { useGlobalState } from '../Context/GlobalContext';
 import { FaCannabis } from 'react-icons/fa';
 
@@ -24,8 +24,11 @@ const HistoryChart = ({ sensorId, onClose, minThreshold = 400, maxThreshold = 12
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const { srvAddr } = useHomeAssistant();
-  const { accessToken } = useGlobalState();
+
+  const {state} = useGlobalState();
+  const srvAddr = state?.Conf?.hassServer
+  const token = state?.Conf?.haToken
+
 
   const fetchHistoryData = async () => {
     if (!startDate || !endDate) {
@@ -40,7 +43,7 @@ const HistoryChart = ({ sensorId, onClose, minThreshold = 400, maxThreshold = 12
     try {
       const response = await fetch(url, {
         headers: {
-          'Authorization': `Bearer ${accessToken}`,
+          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
       });
@@ -163,16 +166,30 @@ const HistoryContainer = styled.div`
   background: var(--main-bg-color);
 `;
 
-const Header = styled.h2`
+const Header = styled.div`
+  font-size:1.5rem;
+  font-weight:800;
+  padding:1rem;
   text-align: center;
   color: var(--primary-accent);
+      @media (max-width: 768px) {
+        font-size:0.7rem;
+        transition: color 0.3s ease;
+    }
+
 `;
 
 const DateInputs = styled.div`
   display: flex;
   justify-content: center;
   gap: 1rem;
-  margin-bottom: 1rem;
+
+    @media (max-width: 768px) {
+        justify-content:center;
+        align-items:center;
+        flex-direction:column;
+        transition: color 0.3s ease;
+    }
 `;
 
 const CloseButton = styled.div`

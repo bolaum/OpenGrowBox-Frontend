@@ -1,28 +1,29 @@
 import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import { FaPowerOff } from "react-icons/fa";
-import { useHomeAssistant } from "../../Context/HomeAssistantContext"
+import { useHomeAssistant } from "../../Context/HomeAssistantContext";
 import formatLabel from "../../../misc/formatLabel";
+import { useGlobalState } from "../../Context/GlobalContext";
 
 const DeviceCard = () => {
-  const { entities, connection } = useHomeAssistant();
+  const { entities, connection, currentRoom} = useHomeAssistant();
+  const { HASS} = useGlobalState();
   const [devices, setDevices] = useState([]);
-
+  const [deviceSelect, setDeviceSelect] = useState("room");
 
   const updateDevices = () => {
-    const sensors = Object.entries(entities)
-    .filter(([key, entity]) => {
-      const isRelevantType =
-        (key.startsWith("switch.") ||
-          key.startsWith("light.") ||
-          key.startsWith("fan.") ||
-          key.startsWith("climate.") ||
-          key.startsWith("humidifier.")) &&
-        !key.includes("template"); // Verhindert, dass Template-Entities enthalten sind
-      const isAvailable = entity.state !== "unavailable";
-      return isRelevantType && isAvailable;
-    })
-    
+    let sensors = Object.entries(entities)
+      .filter(([key, entity]) => {
+        const isRelevantType =
+          (key.startsWith("switch.") ||
+            key.startsWith("light.") ||
+            key.startsWith("fan.") ||
+            key.startsWith("climate.") ||
+            key.startsWith("humidifier.")) &&
+          !key.includes("template"); // Template-Entities ausschließen
+        const isAvailable = entity.state !== "unavailable";
+        return isRelevantType && isAvailable;
+      })
       .map(([key, entity]) => {
         const domain = key.split(".")[0];
         const title = formatLabel(entity.attributes?.friendly_name || entity.entity_id);
@@ -51,18 +52,45 @@ const DeviceCard = () => {
         };
       });
   
-    const sortedSensors = sensors
-      .sort((a, b) => {
-        // Sort by state (on first, off later)
-        if (a.state === "on" && b.state !== "on") return -1;
-        if (a.state !== "on" && b.state === "on") return 1;
+    // Filter: Wenn "room" ausgewählt ist, nur Geräte des aktuellen Raumes anzeigen
+    if (deviceSelect === "room") {
+      if (import.meta.env.PROD) {
+        const devices = HASS?.devices;
+        const haEntities = HASS?.entities;
+        let roomDeviceIds = []; // Array zum Speichern der eindeutigen Geräte-IDs
+        let roomEntities = [];  // Array für die passenden Entities
   
-        // Sort by domain (fan first, then light, then climate)
-        if (a.domain < b.domain) return -1;
-        if (a.domain > b.domain) return 1;
+        if (devices) {
+          // Durchlaufe alle Devices
+          for (const [key, device] of Object.entries(devices)) {
+            // Prüfe, ob das Device im aktuellen Raum ist
+            if (device.area_id === currentRoom.toLowerCase()) {
+              if (!roomDeviceIds.includes(key)) {
+                roomDeviceIds.push(key);
+              }
+            }
+          }
+        }
+        if (haEntities) {
+          for (const [entityKey, entity] of Object.entries(haEntities)) {
+            if (roomDeviceIds.includes(entity.device_id)) {
+              roomEntities.push(entity.entity_id);
+            }
+          }
+        }
+        // Filtere nur die Entitäten, die in roomEntities enthalten sind
+        sensors = sensors.filter(sensor => roomEntities.includes(sensor.entity_id));
+      }
+    }
   
-        return 0;
-      });
+    // Sortierung nach Status und Domain
+    const sortedSensors = sensors.sort((a, b) => {
+      if (a.state === "on" && b.state !== "on") return -1;
+      if (a.state !== "on" && b.state === "on") return 1;
+      if (a.domain < b.domain) return -1;
+      if (a.domain > b.domain) return 1;
+      return 0;
+    });
   
     setDevices(sortedSensors);
   };
@@ -82,7 +110,11 @@ const DeviceCard = () => {
       connection.addEventListener("message", handleMessage);
       return () => connection.removeEventListener("message", handleMessage);
     }
-  }, [entities, connection]);
+  }, [entities, connection, deviceSelect, currentRoom]);
+
+  const handleDeviceSelect = (select) => {
+    setDeviceSelect(select);
+  };
 
   const toggleDevice = async (sensor) => {
     if (connection) {
@@ -157,6 +189,20 @@ const DeviceCard = () => {
 
   return (
     <CardContainer>
+      <CardHeader>
+        <HeaderTitle 
+          $active={deviceSelect === "room"} 
+          onClick={() => handleDeviceSelect("room")}
+        >
+          Room
+        </HeaderTitle>
+        <HeaderTitle 
+          $active={deviceSelect === "all"} 
+          onClick={() => handleDeviceSelect("all")}
+        >
+          All
+        </HeaderTitle>
+      </CardHeader>
       <Content>
         {devices.map((sensor) => (
           <DeviceBox key={sensor.id}>
@@ -181,7 +227,6 @@ const DeviceCard = () => {
                     value={sensor.duty}
                     onChange={(e) => updateDutyCycle(sensor.entity_id, e.target.value)}
                   />
-
                 </ControlSliderWrapper>
               </ControlBox>
             )}
@@ -191,7 +236,6 @@ const DeviceCard = () => {
                   <ControlLabel>Brightness</ControlLabel>
                   <ControlLabelValue>{sensor.brightness}%</ControlLabelValue>
                 </ControlHeader>
-
                 <ControlSliderWrapper>
                   <ControlSlider
                     type="range"
@@ -212,7 +256,9 @@ const DeviceCard = () => {
                   onChange={(e) => updateHvacMode(sensor.entity_id, e.target.value)}
                 >
                   {sensor.hvacModes.map((mode) => (
-                    <option key={mode} value={mode}>{mode}</option>
+                    <option key={mode} value={mode}>
+                      {mode}
+                    </option>
                   ))}
                 </HvacModeSelect>
               </ControlBox>
@@ -238,47 +284,64 @@ const CardContainer = styled.div`
   background: var(--main-bg-card-color);
   border-radius: 25px;
   box-shadow: var(--main-shadow-art);
+`;
+
+const CardHeader = styled.div`
+  display: flex;
+  justify-content: space-around;
+  width: 100%;
+  gap: 0.3rem;
+  margin-top: 1rem;
 
 `;
+
+const HeaderTitle = styled.div`
+  padding: 1rem;
+  background: var(--main-bg-card-color);
+  border-radius: 6px;
+  box-shadow: var(--main-shadow-art);
+  cursor: pointer;
+  color: ${(props) => (props.$active ? "var(--primary-button-color)" : "#fff")};
+
+  &:hover{
+    color:var(--secondary-hover-color);
+  }
+
+  `;
 
 const Content = styled.div`
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
-  justify-content:space-around;
+  justify-content: space-around;
   width: 100%;
-  padding:1rem;
-
-
+  padding: 0.2rem;
+  margin-bottom:0.5rem;
 `;
 
 const DeviceBox = styled.div`
   display: flex;
   flex-direction: column;
-  justify-content:space-around;
+  justify-content: space-around;
   background: var(--main-bg-card-color);
   padding: 0.6rem;
   border-radius: 6px;
   box-shadow: var(--main-shadow-art);
-  width: 44%; /* Schmaler machen, um 2 nebeneinander anzuzeigen */
-  min-width: 180px; /* Sicherstellen, dass die Box nicht zu klein wird */
+  width: 44%;
+  min-width: 180px;
   box-sizing: border-box;
-    @media (max-width: 1024px) {
-        transition: color 0.3s ease;
-
-    }
-
-    @media (max-width: 768px) {
-
-        transition: color 0.3s ease;
-    }
-
-    @media (max-width: 480px) {
-        width:85%;
-        transition: color 0.3s ease;
-    }
-    &:hover{
-    background:var(--main-hover-color);
+  @media (max-width: 1024px) {
+    transition: color 0.3s ease;
+  }
+  @media (max-width: 768px) {
+    transition: color 0.3s ease;
+  }
+  @media (max-width: 480px) {
+    width: 85%;
+    transition: color 0.3s ease;
+  }
+  &:hover {
+    background: var(--main-hover-color);
   }
 `;
 
@@ -300,48 +363,39 @@ const PowerButton = styled.button`
   border: none;
   cursor: pointer;
   font-size: 1rem;
-
 `;
 
 const ControlBox = styled.div`
   display: flex;
   flex-direction: column;
   gap: 0.1rem;
-
-
 `;
 
 const ControlLabel = styled.div`
   font-size: 0.7rem;
   color: var(--main-text-color);
-  
 `;
 
 const ControlHeader = styled.div`
   display: flex;
   justify-content: space-between;
-
 `;
 
 const ControlSliderWrapper = styled.div`
   display: flex;
   flex-direction: column;
-
 `;
 
 const ControlSlider = styled.input`
-
   width: 100%;
   height: 6px;
   border-radius: 4px;
   background: #444;
   appearance: none;
   cursor: pointer;
-
   &:focus {
     outline: none;
   }
-
   &::-webkit-slider-thumb {
     appearance: none;
     width: 12px;
@@ -350,7 +404,6 @@ const ControlSlider = styled.input`
     background: #4caf50;
     cursor: pointer;
   }
-
   &::-moz-range-thumb {
     width: 12px;
     height: 12px;
@@ -369,15 +422,13 @@ const ControlLabelValue = styled.div`
 const HvacModeSelect = styled.select`
   padding: 0.5rem;
   border-radius: 4px;
-
   color: var(--main-text-color);
   border: none;
   font-size: 0.9rem;
 `;
 
 const NoData = styled.div`
- color: var(--error-text-color);
+  color: var(--error-text-color);
   text-align: center;
-
+  padding-bottom:1rem;
 `;
-

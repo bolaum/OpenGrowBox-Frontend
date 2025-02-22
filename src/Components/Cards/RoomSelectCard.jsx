@@ -23,7 +23,7 @@ const RoomSelectCard = ({title}) => {
   }, [entities, currentRoom]);
 
   const handleRoomChange = async (selectedRoom) => {
-    console.log(selectedRoom);
+
     const roomEntity = Object.entries(entities).find(([key]) =>
       key.startsWith('select.ogb_rooms')
     );
@@ -41,7 +41,7 @@ const RoomSelectCard = ({title}) => {
         });
         setSelectedRoom(selectedRoom);
         setIsOpen(false); // Schließt das Menü
-        console.log(`Room updated to: ${selectedRoom}`);
+
       } catch (error) {
         console.error('Error updating room:', error);
       }

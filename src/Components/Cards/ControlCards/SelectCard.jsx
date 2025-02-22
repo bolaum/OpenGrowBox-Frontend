@@ -9,7 +9,7 @@ const SelectCard = ({ entities }) => {
   }
 
   const handleChange = async (entity, newValue) => {
-    console.log(`Updating ${entity.entity_id} to ${newValue}`);
+
 
     if (connection) {
       try {
@@ -22,7 +22,7 @@ const SelectCard = ({ entities }) => {
             option: newValue,
           },
         });
-        console.log(`Updated ${entity.entity_id} successfully!`);
+
       } catch (error) {
         console.error('Error updating entity:', error);
       }

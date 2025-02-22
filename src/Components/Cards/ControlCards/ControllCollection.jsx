@@ -60,8 +60,7 @@ const ControllCollection = ({ option }) => {
   const includedKeywords = group ? group.includeKeywords : [];
   const excludedKeywords = group ? group.excludeKeywords : [];
 
-  //console.log('Included Keywords:', includedKeywords);
-  //console.log('Excluded Keywords:', excludedKeywords);
+
 
   const formatTitle = (title) => {
     return title
@@ -117,7 +116,7 @@ const ControllCollection = ({ option }) => {
     (entity) =>
       entity.entity_id.startsWith('select.') && entity.options.length > 0
   );
-  //console.log('Dropdown Entities:', dropdownEntities);
+
 
   const sliderEntities = filterEntitiesByKeywords(
     entities,
@@ -127,7 +126,7 @@ const ControllCollection = ({ option }) => {
   ).filter(
     (entity) => entity.entity_id.startsWith('number.') && entity.max > entity.min
   );
-  //console.log('Slider Entities:', sliderEntities);
+
 
   const timeEntities = filterEntitiesByKeywords(
     entities,
@@ -135,7 +134,7 @@ const ControllCollection = ({ option }) => {
     excludedKeywords,
     currentRoom
   ).filter((entity) => entity.entity_id.startsWith('time.'));
-  //console.log('Time Entities:', timeEntities);
+
 
   return (
     <div>

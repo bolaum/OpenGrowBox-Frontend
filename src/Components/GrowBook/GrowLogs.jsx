@@ -23,7 +23,7 @@ const GrowLogs = () => {
     if (!connection) return;
 
     const handleNewEvent = (event) => {
-      console.log('Empfangenes Ereignis:', event);
+
       const newLog = {
         room: event.data.Name,
         date: new Date(event.time_fired).toLocaleString(),
@@ -51,7 +51,7 @@ const GrowLogs = () => {
 
   return (
     <GrowLogContainer>
-      <h3>Live Logs</h3>
+
       {displayedLogs.length === 0 ? (
         <NoLogsMessage>Keine Logs vorhanden</NoLogsMessage>
       ) : (
@@ -77,7 +77,7 @@ const GrowLogContainer = styled.div`
   gap: 0.25rem;
   width: 100%;
   height: 100%;
-  max-height:87vh;
+  max-height:80vh;
   overflow-y: auto;
   padding: 1rem;
 

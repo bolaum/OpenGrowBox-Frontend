@@ -35,10 +35,13 @@ const DashboardStats = () => {
         value: parseFloat(entity.state),
         unit: entity.attributes?.unit_of_measurement || '',
         friendlyName: formatLabel(entity.attributes?.friendly_name || key),
-      }));
+      }))
+      // Sortiere in umgekehrter alphabetischer Reihenfolge basierend auf dem friendlyName
+      .sort((a, b) => b.friendlyName.localeCompare(a.friendlyName));
   
     setRoomSensors(sensors);
   };
+  
   
   
 

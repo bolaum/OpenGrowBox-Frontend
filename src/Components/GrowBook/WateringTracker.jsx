@@ -188,13 +188,15 @@ export default WateringTracker;
 
 // Styled Components
 const CounterContainer = styled.div`
-  display: flex;
-  height: 100%;
-  flex-direction: column;
-  padding: 1rem;
-  border-radius: 2rem;
   background: var(--main-bg-card-color);
+  border-radius: 16px;
+  padding: 0.7rem;
+  max-width: 22rem;
+  min-height:10rem;
+  margin: 0.5rem auto;
   box-shadow: var(--main-shadow-art);
+  color: var(--main-text-color);
+  font-family: 'Arial', sans-serif;
 `;
 
 const Header = styled.div`
@@ -268,7 +270,10 @@ const WaterProgress = styled.div`
   transition: width 0.5s ease, background 0.3s ease;
 `;
 
-const ActionButton = styled(motion.button)`
+const ActionButton = styled(motion.div)`
+  display:flex;
+  align-items:center;
+  justify-content:center;
   background: var(--second-bg-color);
   color: var(--main-text-color);
   border: none;
