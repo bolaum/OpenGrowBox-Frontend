@@ -27,7 +27,7 @@ const SettingsFooter = () => {
   };
 
   const handleWikiClick = () => {
-    window.open('http://wiki.opengrowbox.net', '_blank');
+    window.open('https://github.com/OpenGrow-Box/OpenGrowBox/wiki', '_blank');
   };
 
   const handleTelegramClick = () => {
@@ -41,7 +41,7 @@ const SettingsFooter = () => {
       <TelegramButton onClick={handleTelegramClick}>
         <FaTelegram size={18} /> Join Telegram
       </TelegramButton>
-      <Version onClick={handleVersionClick}> Version: {appVersion}</Version>
+      <Version onClick={handleVersionClick}> UI Version: {appVersion}</Version>
     </FooterContainer>
   );
 };
