@@ -9,7 +9,7 @@ function mountWithShadow(container) {
   const shadowHost = document.createElement('div');
   container.appendChild(shadowHost);
   const shadowRoot = shadowHost.attachShadow({ mode: 'open' });
-  
+  let version = "1.0.4"
   // Füge Deine globalen Styles in das Shadow DOM ein
   const style = document.createElement('style');
   style.textContent = `
