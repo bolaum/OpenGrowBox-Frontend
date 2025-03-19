@@ -3,11 +3,15 @@ import styled from 'styled-components';
 import { useGlobalState } from '../Context/GlobalContext';
 import { useNavigate } from 'react-router-dom';
 import SettingsFooter from './SettingsFooter';
+import { useHomeAssistant } from '../Context/HomeAssistantContext';
+import ControlMode from './ControlMode';
+
 // Definiere deine Themes mit den entsprechenden CSS-Variablen
 
 
 const SettingsPanel = () => {
   const { state, setDeep } = useGlobalState();
+  const {roomOptions} = useHomeAssistant()
   const currentTheme = state.Design.theme;
   const availableThemes = state.Design.availableThemes;
 
@@ -16,7 +20,7 @@ const SettingsPanel = () => {
   
   // Beim ersten Rendern und bei Theme-Änderungen anwenden
   useEffect(() => {
-
+    console.log(roomOptions)
   }, [currentTheme]);
   
 
@@ -53,6 +57,9 @@ const SettingsPanel = () => {
 
         <Title>Config</Title>
         <MenuItem onClick={clearAppStates}>🗑️ Clear App State</MenuItem>
+
+        <ControlMode/>
+        
         <MenuFooter>
             <SettingsFooter/>
         </MenuFooter>

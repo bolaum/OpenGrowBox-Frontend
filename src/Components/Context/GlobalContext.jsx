@@ -54,7 +54,7 @@ export const GlobalStateProvider = ({ children }) => {
         setHASSServer(haServer)
       }
     }else{
-      setHASSServer('http://10.1.1.253:8123')
+      setHASSServer('http://10.1.1.11:8123')
     }
 
   }, [srvADDR]);
