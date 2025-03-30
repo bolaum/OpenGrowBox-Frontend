@@ -60,18 +60,8 @@ export const GlobalStateProvider = ({ children }) => {
   }, [srvADDR]);
 
   useEffect(() => {
-    if (import.meta.env.PROD) {
-      const hass = getHASS();
-      setHass(hass)
-      const accessToken = hass.auth.data.access_token
-      if (accessToken) {
-        setHASSAccessToken(accessToken)
-      }
-    }else{
-      const devToken = localStorage.getItem('haDevToken')
-      setHASSAccessToken(devToken)
-    }
-
+    const token = localStorage.getItem('haToken')
+    setHASSAccessToken(token)
   }, [accessToken]);
 
   useEffect(() => {

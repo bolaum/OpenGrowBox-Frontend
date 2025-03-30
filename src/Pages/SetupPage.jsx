@@ -46,13 +46,8 @@ const SetupPage = () => {
       return;
     }
   
-    if (import.meta.env.PROD) {
-      setDeep('Conf.haToken', inputToken);
-    } else {
-      //localStorage.setItem('haDevToken', inputToken);
-      setDeep('Conf.haToken', inputToken);
-      localStorage.setItem('haDevToken',inputToken)
-    }
+    setDeep('Conf.haToken', inputToken);
+    localStorage.setItem('haToken',inputToken)
   
     navigate("/home");
   };

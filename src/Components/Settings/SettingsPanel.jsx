@@ -27,7 +27,6 @@ const SettingsPanel = () => {
 
   
   const clearAppStates = () => {
-    localStorage.removeItem("globalState")
     localStorage.removeItem("globalOGBState")
     setDeep('Conf.haToken',null);
     navigate('/')

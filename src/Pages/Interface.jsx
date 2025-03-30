@@ -6,47 +6,29 @@ import { useNavigate} from 'react-router-dom';
 
 
 const Interface = () => {
-  const {setDeep,getHASS,getDeep} = useGlobalState()
+  const {getDeep,setDeep } = useGlobalState()
   const [token, setToken] = useState(null);
   const navigate = useNavigate();
   // Token aus localStorage holen, wenn die App startet
   
-
-  
-  const handleProdView = () => {
-    const hass = getHASS()
-    const accessToken = hass.auth.data.access_token
-
+  const handleFirstSetup = ( ) => {
+    const accessToken = localStorage.getItem('haToken')
     if(accessToken){
       setToken(accessToken)
-    }else{
-      setToken(null)
-    }    
-  }
+      setDeep('Conf.haToken', accessToken);
+      localStorage.setItem('haToken',accessToken)
 
-  const handleDevSetup = ( ) => {
-    const devToken = localStorage.getItem('haDevToken')
-    if(devToken){
-      setToken(devToken)
+      // ADD FUNCTION TO STORE TOKEN ON BACKED
+      // TO NO RE ADD TOKEN FOR ANY DEVICE
+
     }else{
       setToken(null)
     }  
   }
 
-
-
-
   useEffect(() => {
     const accessToken = getDeep('Conf.haToken')
-    const devToken = localStorage.getItem('haDevToken')
-
-
-    if (import.meta.env.PROD) {
-      handleProdView(accessToken)
-    } else {
-      handleDevSetup(devToken)
-    }
-   
+    handleFirstSetup(accessToken)
   }, []);
 
   return (

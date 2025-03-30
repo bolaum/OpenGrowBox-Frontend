@@ -9,21 +9,6 @@ import { useGlobalState } from './GlobalContext';
 
 const HomeAssistantContext = createContext();
 
-function convertWsToHttp(wsUrl) {
-  try {
-    const url = new URL(wsUrl);
-    // Ändern Sie das Protokoll von 'ws:' oder 'wss:' zu 'http:' bzw. 'https:'
-    url.protocol = url.protocol === 'ws:' ? 'http:' : 'https:';
-    // Entfernen Sie den Pfad '/api/websocket'
-    url.pathname = '';
-    return url.toString().replace(/\/$/, ''); // Entfernt den abschließenden '/'
-  } catch (error) {
-    console.error('Ungültige WebSocket-URL:', error);
-    return null;
-  }
-}
-
-
 export const HomeAssistantProvider = ({ children }) => {
   const {getHASS,getDeep} = useGlobalState()
 
