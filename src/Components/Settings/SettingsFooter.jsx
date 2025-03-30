@@ -5,14 +5,24 @@ import { FaTelegram } from 'react-icons/fa';
 const SettingsFooter = () => {
   const currentYear = new Date().getFullYear();
   const [appVersion, setAppVersion] = useState('Laden...');
+  const [hasUpdate, setHasUpdate] = useState(false);
+
+
+
 
   useEffect(() => {
-    // Funktion zum Abrufen der neuesten Release-Version
+    const currentVersion = "1.0.4";
     const fetchLatestRelease = async () => {
       try {
         const response = await fetch('https://api.github.com/repos/OpenGrow-Box/OpenGrowBox-Frontend/releases/latest');
         const data = await response.json();
-        setAppVersion(data.tag_name); // Setze die Versionsnummer
+        // Prüfe, ob data.tag_name existiert und die Version abweicht
+        if (data.tag_name && currentVersion !== data.tag_name) {
+          setHasUpdate(true);
+          setAppVersion(data.tag_name);
+        } else {
+          setAppVersion(currentVersion);
+        }
       } catch (error) {
         console.error('Fehler beim Abrufen der neuesten Version:', error);
         setAppVersion('Unbekannt');
@@ -34,6 +44,15 @@ const SettingsFooter = () => {
     window.open('https://t.me/+I1P3XoSSbbtkZjUy', '_blank');
   };
 
+  const checkVersion = (data,currentVersion) => {
+    console.log(data.tag_name)
+
+    if(currentVersion !== data.tag_name){
+      hasUpdate(true)
+      setAppVersion(data.tag_name); // Setze die Versionsnummer
+    }
+  }
+
   return (
     <FooterContainer>
       <Copyright>© {currentYear} OpenGrowBox</Copyright>
@@ -41,7 +60,9 @@ const SettingsFooter = () => {
       <TelegramButton onClick={handleTelegramClick}>
         <FaTelegram size={18} /> Join Telegram
       </TelegramButton>
-      <Version onClick={handleVersionClick}> UI Version: {appVersion}</Version>
+      <Version onClick={handleVersionClick}>
+        {hasUpdate ? '🚀 New Update! UI Version: ' : 'UI Version: '}{appVersion}
+      </Version>
     </FooterContainer>
   );
 };
@@ -74,7 +95,17 @@ const Version = styled.div`
   padding: 0.1rem;
   border-bottom: 1px solid var(--main-text-color);
   cursor: pointer;
+  color: ${props => (props.hasUpdate ? 'red' : 'inherit')};
+  ${props => props.hasUpdate && `animation: ${blink} 1s infinite;`}
+  
+  &:hover {
+    font-weight: bold;
+    background: ${props => (props.hasUpdate ? 'yellow' : 'inherit')};
+    border-radius: 5px;
+    padding: 0.2rem;
+  }
 `;
+
 
 const TelegramButton = styled.button`
   display: flex;
