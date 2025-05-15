@@ -3,6 +3,8 @@ import styled from 'styled-components';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
 import { GlobalStateProvider } from './Components/Context/GlobalContext';
+import ErrorBoundary from '../src/misc/ErrorBoundary';
+import ConnectionStatus from '../src/misc/ConnectionStatus'
 
 import GrowBook from './Pages/GrowBook';
 import Dashboard from './Pages/Dashboard';
@@ -21,33 +23,37 @@ export default function App() {
   return (
     <GlobalOGBContainer>
         <GlobalStateProvider>
-          <HomeAssistantProvider>
-            <ThemeGlobalStyle />
-            <Router basename={basename}>
-              <AppContainer>
-                {/* Hintergrund-Gradients */}
-                <BackgroundContainer>
-                  <div className='gradient-1'></div>
-                  <div className='gradient-2'></div>
-                  <div className='gradient-3'></div>
-                  <div className='gradient-4'></div>
-                  <div className='gradient-5'></div>
-                </BackgroundContainer>
-                {/* Sidebar und Main-Content */}
+          <ErrorBoundary>
+            <HomeAssistantProvider>
+              <ThemeGlobalStyle />
+              <Router basename={basename}>
+                <AppContainer>
+                  {/* Hintergrund-Gradients */}
+                  <BackgroundContainer>
+                    <div className='gradient-1'></div>
+                    <div className='gradient-2'></div>
+                    <div className='gradient-3'></div>
+                    <div className='gradient-4'></div>
+                    <div className='gradient-5'></div>
+                  </BackgroundContainer>
+                  {/* Sidebar und Main-Content */}
+                  {/* Connection Status Notification */}
+                  <ConnectionStatus />
+                  <MainContent>
+                    <Routes>
+                      <Route path="/" element={<Interface />} />
+                      <Route path="/home" element={<Home />} />
+                      <Route path="/dashboard" element={<Dashboard />} />
+                      <Route path="/settings" element={<Settings />} />
+                      <Route path="/growbook" element={<GrowBook />} />
+                      <Route path="/setup" element={<SetupPage />} />
+                    </Routes>
+                  </MainContent>
+                </AppContainer>
+              </Router>
+            </HomeAssistantProvider>
+          </ErrorBoundary>
 
-                <MainContent>
-                  <Routes>
-                    <Route path="/" element={<Interface />} />
-                    <Route path="/home" element={<Home />} />
-                    <Route path="/dashboard" element={<Dashboard />} />
-                    <Route path="/settings" element={<Settings />} />
-                    <Route path="/growbook" element={<GrowBook />} />
-                    <Route path="/setup" element={<SetupPage />} />
-                  </Routes>
-                </MainContent>
-              </AppContainer>
-            </Router>
-          </HomeAssistantProvider>
         </GlobalStateProvider>
 
     </GlobalOGBContainer>

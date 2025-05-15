@@ -6,8 +6,8 @@ import formatLabel from "../../../misc/formatLabel";
 import { useGlobalState } from "../../Context/GlobalContext";
 
 const DeviceCard = () => {
-  const { entities, connection, currentRoom} = useHomeAssistant();
-  const { HASS} = useGlobalState();
+  const { entities, connection, currentRoom } = useHomeAssistant();
+  const { HASS } = useGlobalState();
   const [devices, setDevices] = useState([]);
   const [deviceSelect, setDeviceSelect] = useState("room");
 
@@ -20,9 +20,8 @@ const DeviceCard = () => {
             key.startsWith("fan.") ||
             key.startsWith("climate.") ||
             key.startsWith("humidifier.")) &&
-          !key.includes("template"); // Template-Entities ausschließen
-        const isAvailable = entity.state !== "unavailable";
-        return isRelevantType && isAvailable;
+          !key.includes("template");
+        return isRelevantType && entity.state !== "unavailable";
       })
       .map(([key, entity]) => {
         const domain = key.split(".")[0];
@@ -51,50 +50,40 @@ const DeviceCard = () => {
               : [],
         };
       });
-  
-    // Filter: Wenn "room" ausgewählt ist, nur Geräte des aktuellen Raumes anzeigen
-    if (deviceSelect === "room") {
-      if (import.meta.env.PROD) {
-        const devices = HASS?.devices;
-        const haEntities = HASS?.entities;
-        let roomDeviceIds = []; // Array zum Speichern der eindeutigen Geräte-IDs
-        let roomEntities = [];  // Array für die passenden Entities
-  
-        if (devices) {
-          // Durchlaufe alle Devices
-          for (const [key, device] of Object.entries(devices)) {
-            // Prüfe, ob das Device im aktuellen Raum ist
-            if (device.area_id === currentRoom.toLowerCase()) {
-              if (!roomDeviceIds.includes(key)) {
-                roomDeviceIds.push(key);
-              }
-            }
+
+    if (deviceSelect === "room" && import.meta.env.PROD) {
+      const devices = HASS?.devices;
+      const haEntities = HASS?.entities;
+      let roomDeviceIds = [];
+      let roomEntities = [];
+
+      if (devices) {
+        for (const [key, device] of Object.entries(devices)) {
+          if (device.area_id === currentRoom.toLowerCase()) {
+            roomDeviceIds.push(key);
           }
         }
-        if (haEntities) {
-          for (const [entityKey, entity] of Object.entries(haEntities)) {
-            if (roomDeviceIds.includes(entity.device_id)) {
-              roomEntities.push(entity.entity_id);
-            }
-          }
-        }
-        // Filtere nur die Entitäten, die in roomEntities enthalten sind
-        sensors = sensors.filter(sensor => roomEntities.includes(sensor.entity_id));
       }
+
+      if (haEntities) {
+        for (const [entityKey, entity] of Object.entries(haEntities)) {
+          if (roomDeviceIds.includes(entity.device_id)) {
+            roomEntities.push(entity.entity_id);
+          }
+        }
+      }
+
+      sensors = sensors.filter(sensor => roomEntities.includes(sensor.entity_id));
     }
-  
-    // Sortierung nach Status und Domain
+
     const sortedSensors = sensors.sort((a, b) => {
       if (a.state === "on" && b.state !== "on") return -1;
       if (a.state !== "on" && b.state === "on") return 1;
-      if (a.domain < b.domain) return -1;
-      if (a.domain > b.domain) return 1;
-      return 0;
+      return a.domain.localeCompare(b.domain);
     });
-  
+
     setDevices(sortedSensors);
   };
-  
 
   useEffect(() => {
     updateDevices();
@@ -112,9 +101,7 @@ const DeviceCard = () => {
     }
   }, [entities, connection, deviceSelect, currentRoom]);
 
-  const handleDeviceSelect = (select) => {
-    setDeviceSelect(select);
-  };
+  const handleDeviceSelect = (select) => setDeviceSelect(select);
 
   const toggleDevice = async (sensor) => {
     if (connection) {
@@ -122,7 +109,7 @@ const DeviceCard = () => {
         const domain = sensor.entity_id.split(".")[0];
         await connection.sendMessagePromise({
           type: "call_service",
-          domain: domain,
+          domain,
           service: "toggle",
           service_data: { entity_id: sensor.entity_id },
         });
@@ -187,21 +174,25 @@ const DeviceCard = () => {
     }
   };
 
+  const [localSliderValues, setLocalSliderValues] = useState({});
+
+  const handleSliderChange = (entityId, value) => {
+    setLocalSliderValues((prev) => ({ ...prev, [entityId]: value }));
+  };
+
+  const handleDutyCommit = (entityId, value) => {
+    updateDutyCycle(entityId, value);
+  };
+
+  const handleBrightnessCommit = (entityId, value) => {
+    updateBrightness(entityId, value);
+  };
+
   return (
     <CardContainer>
       <CardHeader>
-        <HeaderTitle 
-          $active={deviceSelect === "room"} 
-          onClick={() => handleDeviceSelect("room")}
-        >
-          Room
-        </HeaderTitle>
-        <HeaderTitle 
-          $active={deviceSelect === "all"} 
-          onClick={() => handleDeviceSelect("all")}
-        >
-          All
-        </HeaderTitle>
+        <HeaderTitle $active={deviceSelect === "room"} onClick={() => handleDeviceSelect("room")}>Room</HeaderTitle>
+        <HeaderTitle $active={deviceSelect === "all"} onClick={() => handleDeviceSelect("all")}>All</HeaderTitle>
       </CardHeader>
       <Content>
         {devices.map((sensor) => (
@@ -212,11 +203,13 @@ const DeviceCard = () => {
                 <FaPowerOff color={sensor.state === "on" ? "green" : "red"} />
               </PowerButton>
             </DeviceHeader>
+
+            {/* FAN SLIDER */}
             {sensor.domain === "fan" && sensor.duty !== null && (
               <ControlBox>
                 <ControlHeader>
                   <ControlLabel>Duty Cycle</ControlLabel>
-                  <ControlLabelValue>{sensor.duty}%</ControlLabelValue>
+                  <ControlLabelValue>{localSliderValues[sensor.entity_id] ?? sensor.duty}%</ControlLabelValue>
                 </ControlHeader>
                 <ControlSliderWrapper>
                   <ControlSlider
@@ -224,17 +217,21 @@ const DeviceCard = () => {
                     min={0}
                     max={100}
                     step={1}
-                    value={sensor.duty}
-                    onChange={(e) => updateDutyCycle(sensor.entity_id, e.target.value)}
+                    value={localSliderValues[sensor.entity_id] ?? sensor.duty}
+                    onChange={(e) => handleSliderChange(sensor.entity_id, e.target.value)}
+                    onMouseUp={(e) => handleDutyCommit(sensor.entity_id, e.target.value)}
+                    onTouchEnd={(e) => handleDutyCommit(sensor.entity_id, e.target.value)}
                   />
                 </ControlSliderWrapper>
               </ControlBox>
             )}
-            {sensor.domain === "light" && sensor.brightness !== undefined && (
+
+            {/* LIGHT BRIGHTNESS SLIDER */}
+            {sensor.domain === "light" && sensor.brightness !== null && (
               <ControlBox>
                 <ControlHeader>
                   <ControlLabel>Brightness</ControlLabel>
-                  <ControlLabelValue>{sensor.brightness}%</ControlLabelValue>
+                  <ControlLabelValue>{localSliderValues[sensor.entity_id] ?? sensor.brightness}%</ControlLabelValue>
                 </ControlHeader>
                 <ControlSliderWrapper>
                   <ControlSlider
@@ -242,25 +239,12 @@ const DeviceCard = () => {
                     min={0}
                     max={100}
                     step={1}
-                    value={sensor.brightness}
-                    onChange={(e) => updateBrightness(sensor.entity_id, e.target.value)}
+                    value={localSliderValues[sensor.entity_id] ?? sensor.brightness}
+                    onChange={(e) => handleSliderChange(sensor.entity_id, e.target.value)}
+                    onMouseUp={(e) => handleBrightnessCommit(sensor.entity_id, e.target.value)}
+                    onTouchEnd={(e) => handleBrightnessCommit(sensor.entity_id, e.target.value)}
                   />
                 </ControlSliderWrapper>
-              </ControlBox>
-            )}
-            {sensor.domain === "climate" && sensor.hvacMode !== undefined && (
-              <ControlBox>
-                <ControlLabel>HVAC Mode</ControlLabel>
-                <HvacModeSelect
-                  value={sensor.hvacMode}
-                  onChange={(e) => updateHvacMode(sensor.entity_id, e.target.value)}
-                >
-                  {sensor.hvacModes.map((mode) => (
-                    <option key={mode} value={mode}>
-                      {mode}
-                    </option>
-                  ))}
-                </HvacModeSelect>
               </ControlBox>
             )}
           </DeviceBox>
@@ -292,7 +276,6 @@ const CardHeader = styled.div`
   width: 100%;
   gap: 0.3rem;
   margin-top: 1rem;
-
 `;
 
 const HeaderTitle = styled.div`
@@ -303,11 +286,10 @@ const HeaderTitle = styled.div`
   cursor: pointer;
   color: ${(props) => (props.$active ? "var(--primary-button-color)" : "#fff")};
 
-  &:hover{
-    color:var(--secondary-hover-color);
+  &:hover {
+    color: var(--secondary-hover-color);
   }
-
-  `;
+`;
 
 const Content = styled.div`
   display: flex;
@@ -316,7 +298,7 @@ const Content = styled.div`
   justify-content: space-around;
   width: 100%;
   padding: 0.2rem;
-  margin-bottom:0.5rem;
+  margin-bottom: 0.5rem;
 `;
 
 const DeviceBox = styled.div`
@@ -330,16 +312,11 @@ const DeviceBox = styled.div`
   width: 44%;
   min-width: 180px;
   box-sizing: border-box;
-  @media (max-width: 1024px) {
-    transition: color 0.3s ease;
-  }
-  @media (max-width: 768px) {
-    transition: color 0.3s ease;
-  }
+
   @media (max-width: 480px) {
     width: 85%;
-    transition: color 0.3s ease;
   }
+
   &:hover {
     background: var(--main-hover-color);
   }
@@ -371,14 +348,20 @@ const ControlBox = styled.div`
   gap: 0.1rem;
 `;
 
+const ControlHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+`;
+
 const ControlLabel = styled.div`
   font-size: 0.7rem;
   color: var(--main-text-color);
 `;
 
-const ControlHeader = styled.div`
-  display: flex;
-  justify-content: space-between;
+const ControlLabelValue = styled.div`
+  font-size: 0.9rem;
+  font-weight: bold;
+  color: var(--main-text-color);
 `;
 
 const ControlSliderWrapper = styled.div`
@@ -393,9 +376,11 @@ const ControlSlider = styled.input`
   background: #444;
   appearance: none;
   cursor: pointer;
+
   &:focus {
     outline: none;
   }
+
   &::-webkit-slider-thumb {
     appearance: none;
     width: 12px;
@@ -404,6 +389,7 @@ const ControlSlider = styled.input`
     background: #4caf50;
     cursor: pointer;
   }
+
   &::-moz-range-thumb {
     width: 12px;
     height: 12px;
@@ -413,16 +399,11 @@ const ControlSlider = styled.input`
   }
 `;
 
-const ControlLabelValue = styled.div`
-  font-size: 0.9rem;
-  font-weight: bold;
-  color: var(--main-text-color);
-`;
-
 const HvacModeSelect = styled.select`
   padding: 0.5rem;
   border-radius: 4px;
   color: var(--main-text-color);
+  background: var(--main-bg-card-color);
   border: none;
   font-size: 0.9rem;
 `;
@@ -430,5 +411,5 @@ const HvacModeSelect = styled.select`
 const NoData = styled.div`
   color: var(--error-text-color);
   text-align: center;
-  padding-bottom:1rem;
+  padding-bottom: 1rem;
 `;

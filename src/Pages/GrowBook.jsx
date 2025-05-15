@@ -9,6 +9,7 @@ import { useGlobalState } from '../Components/Context/GlobalContext';
 import BottomBar from '../Components/Navigation/BottomBar';
 
 import DashboardTitle from '../Components/Dashboard/DashboardTitle';
+import StrainDB from '../Components/GrowBook/StrainDB';
 const GrowBook = () => {
   // Wir holen uns den globalen Sidebar-Zustand und die Home Assistant-Verbindung/Entitäten
   const { state } = useGlobalState();
@@ -22,9 +23,8 @@ const GrowBook = () => {
       </ContainerHeader>
         <InnerContent>
             <MainSection>
-              <GrowDayCounter/>
-              <WateringTracker/> 
-
+            <GrowDayCounter/>
+            <StrainDB/>
             </MainSection>
             <DataSection>
             <GrowLogs/>

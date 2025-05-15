@@ -6,7 +6,7 @@ import { FaCannabis } from "react-icons/fa";
 import { ImTarget } from "react-icons/im";
 import { PiDiamondsFourBold } from "react-icons/pi";
 import ControllCollection from './ControlCards/ControllCollection';
-
+import { GiWateringCan } from "react-icons/gi";
 const ControllCard = () => {
   const [currentOption, setCurrentOption] = useState("Main Control");
 
@@ -29,7 +29,9 @@ const ControllCard = () => {
         <IconWrapper $active={currentOption === "Targets"} onClick={() => handleOnClickIcon("Targets")}>
           <ImTarget />
         </IconWrapper>
-
+        <IconWrapper $active={currentOption === "Hydro Settings"} onClick={() => handleOnClickIcon("Hydro Settings")}>
+          <GiWateringCan />
+        </IconWrapper>
 
           {/***
            *         <IconWrapper $active={currentOption === "P.I.D"} onClick={() => handleOnClickIcon("P.I.D")}>
@@ -42,7 +44,6 @@ const ControllCard = () => {
            * 
            * ***/}
 
-           
       </OptionContainer>
       <SelectContainer>
         <ControllCollection option={currentOption} />

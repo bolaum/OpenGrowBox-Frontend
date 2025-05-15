@@ -3,113 +3,155 @@ import styled from 'styled-components';
 import { useHomeAssistant } from '../Context/HomeAssistantContext';
 
 const ControlMode = ({ coordinator, onSelectChange }) => {
-  const { roomOptions, connection } = useHomeAssistant();
+  const { roomOptions, connection, entities } = useHomeAssistant();
   const controlOptions = ["HomeAssistant", "Node-RED", "N8N", "Self-Hosted"];
+  const notificationOptions = ["Enabled", "Disabled"];
 
   const [selectedRoom, setSelectedRoom] = useState('');
   const [controlMapping, setControlMapping] = useState(null);
-
-  // useRef, um festzuhalten, ob die Initialisierung bereits stattgefunden hat
+  const [notificationMapping, setNotificationMapping] = useState(null);
+  const [controlSensors, setControlSensors] = useState({});
+  const [notificationSensors, setNotificationSensors] = useState({});
   const initializedRef = useRef(false);
 
+  // Erfasse Select-Entities und spiegle sie in Mapping
   useEffect(() => {
-    if (!roomOptions || roomOptions.length === 0 || initializedRef.current) return;
+    const newControl = {};
+    const newNotification = {};
 
-    initializedRef.current = true; // Initialisierung erfolgt nur einmal
+    Object.entries(entities).forEach(([key, entity]) => {
+      const match = key.match(/^select\.ogb_(?:lightcontrol|maincontrol|notifications)_(.+)$/);
+      if (!match) return;
+      const type = key.includes('maincontrol') || key.includes('lightcontrol') ? 'control' : 'notifications';
+      const roomKey = match[1];
+      const room = roomOptions?.find(r => r.toLowerCase() === roomKey);
+      if (!room) return;
 
-    const storedMappingStr = localStorage.getItem("controlMapping");
-    let storedMapping = {};
-    try {
-      storedMapping = storedMappingStr ? JSON.parse(storedMappingStr) : {};
-    } catch (e) {
-      console.error("Fehler beim Parsen des gespeicherten Mappings:", e);
-    }
-    // Erstelle das Mapping für alle Räume: wenn es einen gespeicherten Wert gibt, verwende ihn; sonst den Standardwert.
-    const newMapping = {};
-    roomOptions.forEach(room => {
-      newMapping[room] = storedMapping[room] || controlOptions[0];
+      if (type === 'control') {
+        newControl[room] = entity.state;
+      } else {
+        newNotification[room] = entity.state;
+      }
     });
-    setControlMapping(newMapping);
+
+    setControlSensors(newControl);
+    setNotificationSensors(newNotification);
+
+    // Update UI-Mapping nur, wenn initialisiert
+    if (controlMapping && notificationMapping) {
+      setControlMapping(prev => {
+        const updated = { ...prev };
+        Object.entries(newControl).forEach(([room, state]) => {
+          if (updated[room] !== state) updated[room] = state;
+        });
+        return updated;
+      });
+      setNotificationMapping(prev => {
+        const updated = { ...prev };
+        Object.entries(newNotification).forEach(([room, state]) => {
+          if (updated[room] !== state) updated[room] = state;
+        });
+        return updated;
+      });
+
+      // Optional: callback
+      if (onSelectChange && selectedRoom) {
+        onSelectChange(
+          selectedRoom,
+          newControl[selectedRoom] || controlMapping[selectedRoom],
+          newNotification[selectedRoom] || notificationMapping[selectedRoom]
+        );
+      }
+    }
+  }, [entities, roomOptions]);
+
+  // Initialisiere aus localStorage
+  useEffect(() => {
+    if (!roomOptions?.length || initializedRef.current) return;
+    initializedRef.current = true;
+
+    const storedControl = JSON.parse(localStorage.getItem('controlMapping') || '{}');
+    const storedNotif = JSON.parse(localStorage.getItem('notificationMapping') || '{}');
+
+    const initControl = {};
+    const initNotif = {};
+    roomOptions.forEach(room => {
+      initControl[room] = storedControl[room] || controlOptions[0];
+      initNotif[room] = storedNotif[room] || notificationOptions[0];
+    });
+
+    setControlMapping(initControl);
+    setNotificationMapping(initNotif);
     setSelectedRoom(roomOptions[0]);
   }, [roomOptions]);
 
-  // Speichere das Mapping im localStorage, sobald es sich ändert
+  // Persist
   useEffect(() => {
-    if (controlMapping !== null) {
-      localStorage.setItem("controlMapping", JSON.stringify(controlMapping));
-    }
+    if (controlMapping) localStorage.setItem('controlMapping', JSON.stringify(controlMapping));
   }, [controlMapping]);
+  useEffect(() => {
+    if (notificationMapping) localStorage.setItem('notificationMapping', JSON.stringify(notificationMapping));
+  }, [notificationMapping]);
 
-  if (controlMapping === null) {
-    return <div>Laden...</div>;
-  }
+  if (!controlMapping || !notificationMapping) return <div>Loading...</div>;
 
-  const handleRoomSelect = (room) => {
-    setSelectedRoom(room);
-    if (onSelectChange && controlMapping[room]) {
-      onSelectChange(room, controlMapping[room]);
+  const callService = async (entitySuffix, option) => {
+    if (!connection) return;
+    const entity_id = `select.ogb_${entitySuffix}_${selectedRoom.toLowerCase()}`;
+    try {
+      await connection.sendMessagePromise({
+        type: 'call_service',
+        domain: 'select',
+        service: 'select_option',
+        service_data: { entity_id, option },
+      });
+    } catch (err) {
+      console.error('Error calling service:', err);
     }
   };
 
-  const handleControlSelect = (option) => {
-    setControlMapping(prevMapping => {
-      const newMapping = { ...prevMapping, [selectedRoom]: option };
-      if (onSelectChange) {
-        onSelectChange(selectedRoom, option);
-      }
-      handleModeChange(selectedRoom, option);
-      return newMapping;
-    });
+  const selectControl = option => {
+    setControlMapping(prev => ({ ...prev, [selectedRoom]: option }));
+    callService('maincontrol', option);
+    onSelectChange?.(selectedRoom, option, notificationMapping[selectedRoom]);
   };
 
-  const handleModeChange = async (room, newValue) => {
-    const entityPrefix = "ogb_maincontrol_";
-    // Entity-ID im Format "select.ogb_maincontrol_<raumname>" erzeugen:
-    const entity_id = `select.${entityPrefix}${room.toLowerCase()}`;
-    console.log("Entity ID:", entity_id);
-    if (connection) {
-      try {
-        await connection.sendMessagePromise({
-          type: 'call_service',
-          domain: 'select',
-          service: 'select_option',
-          service_data: {
-            entity_id: entity_id,
-            option: newValue,
-          },
-        });
-      } catch (error) {
-        console.error('Error updating entity:', error);
-      }
-    } else {
-      console.log("Keine Verbindung vorhanden.");
-    }
+  const selectNotification = option => {
+    setNotificationMapping(prev => ({ ...prev, [selectedRoom]: option }));
+    callService('notifications', option);
+    onSelectChange?.(selectedRoom, controlMapping[selectedRoom], option);
   };
 
   return (
     <Container>
       <SectionTitle>Room-Controller</SectionTitle>
       <TagsContainer>
-        {roomOptions.map((room) => (
-          <Tag
-            key={room}
-            selected={room === selectedRoom}
-            onClick={() => handleRoomSelect(room)}
-          >
+        {roomOptions.map(room => (
+          <Tag key={room} selected={room === selectedRoom} onClick={() => setSelectedRoom(room)}>
             {room}
           </Tag>
         ))}
       </TagsContainer>
-      <InfoTitle>Control Options für {selectedRoom}</InfoTitle>
+
+      <InfoTitle>Control Options - {selectedRoom}</InfoTitle>
       <TagsContainer>
-        {controlOptions.map((option) => (
+        {controlOptions.map(opt => (
           <Tag
-            key={option}
-            selected={controlMapping[selectedRoom] === option}
-            onClick={() => handleControlSelect(option)}
-          >
-            {option}
-          </Tag>
+            key={opt}
+            selected={controlMapping[selectedRoom] === opt}
+            onClick={() => selectControl(opt)}
+          >{opt}</Tag>
+        ))}
+      </TagsContainer>
+
+      <InfoTitle>Notifications - {selectedRoom}</InfoTitle>
+      <TagsContainer>
+        {notificationOptions.map(opt => (
+          <Tag
+            key={opt}
+            selected={notificationMapping[selectedRoom] === opt}
+            onClick={() => selectNotification(opt)}
+          >{opt}</Tag>
         ))}
       </TagsContainer>
     </Container>
@@ -123,23 +165,19 @@ const Container = styled.div`
   flex-direction: column;
   gap: 1rem;
 `;
-
 const SectionTitle = styled.h4`
   margin: 0;
   color: var(--main-text-color);
 `;
-
 const InfoTitle = styled.h5`
   margin: 0;
   color: var(--main-text-color);
 `;
-
 const TagsContainer = styled.div`
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
 `;
-
 const Tag = styled.div`
   padding: 0.5rem 1rem;
   border-radius: 25px;
@@ -150,7 +188,5 @@ const Tag = styled.div`
   box-shadow: var(--main-shadow-art);
   transition: background 0.3s;
 
-  &:hover {
-    opacity: 0.8;
-  }
+  &:hover { opacity: 0.8; }
 `;

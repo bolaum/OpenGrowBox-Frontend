@@ -121,8 +121,10 @@ const ToggleWrapper = styled.div`
   justify-content:center;
 `;
 
-const ToggleBackground = styled.div`
-  margin-right:0.4rem;  
+const ToggleBackground = styled.div.attrs({
+  part: 'toggle-background',
+})`
+  margin-right: 0.4rem;
   width: 50px;
   height: 0.8rem;
   border-radius: 12px;
@@ -133,11 +135,13 @@ const ToggleBackground = styled.div`
   transition: background 0.3s ease-in-out;
 `;
 
-const ToggleCircle = styled.div`
+const ToggleCircle = styled.div.attrs({
+  part: 'toggle-circle',
+})`
   width: 20px;
   height: 20px;
   border-radius: 50%;
   background: white;
-  transform: ${(props) => (props.isActive ? 'translateX(26px)' : 'translateX(0)')};
+  transform: ${(props) => (props.$isActive ? 'translateX(26px)' : 'translateX(0)')};
   transition: transform 0.3s ease-in-out;
 `;

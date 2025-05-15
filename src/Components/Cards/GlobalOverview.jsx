@@ -51,12 +51,8 @@ const GlobalOverview = () => {
 
   return (
     <OverViewContainer>
-      {neededSensors.map(sensor => (
-        <div key={sensor.id}>
-          Next Food Intervall: {formatTime(sensor.value)}
-        </div>
-      ))}
-    <div>Harvest Time in : {remainingDays ? Math.floor(parseFloat(remainingDays)) : 'N/A'} Days</div>
+
+    <div>Harvest in : {remainingDays ? Math.floor(parseFloat(remainingDays)) : 'N/A'} Days</div>
 
     </OverViewContainer>
   );

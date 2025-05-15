@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, {useEffect } from 'react';
 import styled from 'styled-components';
 import { useGlobalState } from '../Context/GlobalContext';
 import { useNavigate } from 'react-router-dom';
@@ -17,19 +17,11 @@ const SettingsPanel = () => {
 
   // Funktion, um das Theme anzuwenden, indem CSS-Variablen gesetzt werden
   const navigate = useNavigate();
-  
-  // Beim ersten Rendern und bei Theme-Änderungen anwenden
-  useEffect(() => {
-    console.log(roomOptions)
-  }, [currentTheme]);
-  
-
-
-  
+   
   const clearAppStates = () => {
     localStorage.removeItem("globalOGBState")
     setDeep('Conf.haToken',null);
-    navigate('/')
+    navigate('/setup')
   }
 
   const ChangeTheme = (themeName) => {
@@ -54,11 +46,11 @@ const SettingsPanel = () => {
       {/* Weitere Einstellungen (z.B. Mobile Notification) können hier folgen */}
       <MenuControl>
 
-        <Title>Config</Title>
-        <MenuItem onClick={clearAppStates}>🗑️ Clear App State</MenuItem>
 
         <ControlMode/>
-        
+
+        <Title>Config</Title>
+        <MenuItem onClick={clearAppStates}>🗑️ Clear App State</MenuItem>
         <MenuFooter>
             <SettingsFooter/>
         </MenuFooter>

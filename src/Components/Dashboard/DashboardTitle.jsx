@@ -43,8 +43,8 @@ const DashboardTitle = ({firstText,secondText,thirdText}) => {
           style={{ display: 'inline-block', margin: '0 8px' }}
         >
 
-          <CannabisIcon />
 
+          <AnimatedLogo/>
         </motion.div>
       </AnimatePresence>
 
@@ -68,6 +68,23 @@ const CannabisIcon = () => (
 
 
   </motion.span>
+);
+
+const AnimatedLogo = () => (
+  <motion.img
+    src="/ogb_logo.svg"
+    alt="OpenGrowBox Logo"
+    width={32}
+    height={32}
+    animate={{ scale: [1, 1.1, 1], rotate: [0, 5, -5, 0] }}
+    transition={{
+      duration: 4,
+      repeat: Infinity,
+      repeatType: 'mirror',
+      ease: 'easeInOut'
+    }}
+    style={{ display: 'inline-block' }}
+  />
 );
 
 

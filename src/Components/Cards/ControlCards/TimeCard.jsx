@@ -9,12 +9,12 @@ const TimeCard = ({ entities }) => {
   }
 
   const handleTimeChange = async (entity, value) => {
-
+    console.log(entity)
     if (connection) {
       try {
         await connection.sendMessagePromise({
           type: 'call_service',
-          domain: 'opengrowbox', // ersetze mit deinem DOMAIN-Wert
+          domain: 'opengrowbox', 
           service: 'update_time',
           service_data: {
             entity_id: entity.entity_id,

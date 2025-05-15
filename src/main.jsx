@@ -9,7 +9,7 @@ function mountWithShadow(container) {
   const shadowHost = document.createElement('div');
   container.appendChild(shadowHost);
   const shadowRoot = shadowHost.attachShadow({ mode: 'open' });
-  let version = "1.0.4"
+
   // Füge Deine globalen Styles in das Shadow DOM ein
   const style = document.createElement('style');
   style.textContent = `
@@ -20,7 +20,9 @@ function mountWithShadow(container) {
       height: 100%;
       font-family: Arial, sans-serif;
     }
-    
+    ::part(toggle-background) {
+      background-color: #4caf50;
+    }
     #react-container {
       width: 100%;
       height: 100%;

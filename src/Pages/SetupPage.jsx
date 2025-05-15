@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import styled, { keyframes } from 'styled-components';
-import { FaCannabis } from 'react-icons/fa';
 import { useGlobalState } from '../Components/Context/GlobalContext';
-
 import { useNavigate } from 'react-router-dom';
+import { useHomeAssistant } from '../Components/Context/HomeAssistantContext';
+import isValidJWT from '../misc/isValidJWT'
 
 
 const GradientDefs = () => (
@@ -21,21 +21,15 @@ const GradientDefs = () => (
 
 const SetupPage = () => {
   const [inputToken, setInputToken] = useState('');
-  const {setDeep} = useGlobalState(); // Zugriff auf die saveToken-Methode
+  const { setDeep,accessToken } = useGlobalState();
   const navigate = useNavigate();
-  
+  const {connection} = useHomeAssistant();
+
   const handleInputChange = (e) => {
     setInputToken(e.target.value);
   };
 
-  const isValidJWT = (token) => {
-    if (!token) return false;
-    
-    const jwtPattern = /^[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+$/;
-    return jwtPattern.test(token);
-  };
-  
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!inputToken) {
       alert('Please enter your token!');
       return;
@@ -45,18 +39,58 @@ const SetupPage = () => {
       alert('Invalid token format! Please enter a valid Token.');
       return;
     }
+    if (import.meta.env.PROD) {
+      setDeep('Conf.haToken', inputToken);
+      if(connection){
+        await handleTokenChange("text.ogb_accesstoken", inputToken);
+        localStorage.setItem('haToken', inputToken);
+        navigate("/home");
+      }else{
+        alert('Invalid token! Please enter a valid Token.');
+      }
+    }else{
+      setDeep('Conf.haToken', inputToken);
+      if(connection){
+        await handleTokenChange("text.ogb_accesstoken", inputToken);
+        localStorage.setItem('devToken', inputToken);
+        navigate("/home");
+      }else{
+        alert('Invalid token! Please enter a valid Token.');
+      }
+    }
+    
+
+
   
-    setDeep('Conf.haToken', inputToken);
-    localStorage.setItem('haToken',inputToken)
-  
-    navigate("/home");
   };
   
+  const handleTokenChange = async (entity, value) => {
+    console.log(entity,value)
+    if (connection) {
+      try {
+        await connection.sendMessagePromise({
+          type: 'call_service',
+          domain: 'opengrowbox',
+          service: 'update_text',
+          service_data: {
+            entity_id: entity,
+            text: value,
+          },
+        });
+
+      } catch (error) {
+        console.error('Error updating entity:', error);
+      }
+    }
+
+
+
+  };
+
   return (
     <Wrapper>
       <GradientDefs />
       <Header>
-        <CannabisIcon />
         Welcome to OpenGrowBox
       </Header>
       <SubText>
@@ -72,13 +106,15 @@ const SetupPage = () => {
         <SubmitButton onClick={handleSubmit}>Save Token</SubmitButton>
       </InputWrapper>
       <Footer>
-        🪴 Grow smarter with OpenGrowBox! <CannabisIconHarvest /> Harvest Better
+        🪴 Grow smarter with OpenGrowBox! 🪴 Harvest Better
       </Footer>
     </Wrapper>
   );
 };
 
 export default SetupPage;
+
+// === Styles ===
 
 const fadeIn = keyframes`
   from {
@@ -92,18 +128,33 @@ const fadeIn = keyframes`
 `;
 
 const Wrapper = styled.div`
+  position: relative;
   display: flex;
-  position: absolute;
-  width:100vw;
+  width: 100vw;
+  height: 100vh;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 100vh;
-  background: var(--main-bg-color);
-  color: var(--main-text-color);
+  background-color: var(--main-bg-color);
   animation: ${fadeIn} 1s ease-in-out;
-  z-index: 100;
+  overflow: hidden;
+  z-index: 1;
+
+  &::before {
+    content: '';
+    position: absolute;
+    background: url('/ogb_logo.svg') no-repeat center;
+    background-size: 80%;
+    filter: blur(0.05rem); /* 🎯 hier passiert der Blur */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    opacity: 0.1;
+  }
 `;
+
 
 const Header = styled.h1`
   font-size: 2.5rem;
@@ -117,7 +168,7 @@ const Header = styled.h1`
 
 const SubText = styled.p`
   font-size: 1rem;
-  color:  var(--main-text-color);
+  color: var(--main-text-color);
   margin-bottom: 2rem;
 `;
 
@@ -128,6 +179,10 @@ const InputWrapper = styled.div`
   gap: 15px;
   width: 100%;
   max-width: 400px;
+  backdrop-filter: blur(6px);
+  background-color: rgba(0, 0, 0, 0.4);
+  padding: 20px;
+  border-radius: 12px;
 `;
 
 const Input = styled.input`
@@ -156,10 +211,9 @@ const SubmitButton = styled.button`
   border-radius: 8px;
   cursor: pointer;
   transition: background 0.3s ease, transform 0.2s ease;
-  box-shadow: varf(--main-shadow-art);
+  box-shadow: var(--main-shadow-art);
 
   &:hover {
-    background: var(--primary-accent);
     transform: scale(1.05);
   }
 
@@ -170,17 +224,6 @@ const SubmitButton = styled.button`
 
 const Footer = styled.div`
   margin-top: 2rem;
-  font-size: 0.9rem;
-  color:var(--secondary-button-color);
-`;
-
-const CannabisIcon = styled(FaCannabis)`
-  font-size: 2rem;
-  color: var(--primary-accent);
-  animation: ${fadeIn} 1.5s ease-in-out infinite alternate;
-`;
-
-const CannabisIconHarvest = styled(FaCannabis)`
-  font-size: 1.8rem;
-  fill: url(#autumnGradient);
+  font-size: 1rem;
+  color: var(--secondary-button-color);
 `;

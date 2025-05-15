@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import SelectCard from './SelectCard';
 import SliderCard from './SliderCard';
+import SwitchCard from './SwitchCard';
 import TimeCard from './TimeCard';
 import { useHomeAssistant } from "../../Context/HomeAssistantContext"
 
 const groupMappings = {
   'Main Control': {
     includeKeywords: ['vpd', 'plant', 'mode', 'leaf'],
-    excludeKeywords: ['proportional', 'derivativ', 'integral',"light","food","days"],
+    excludeKeywords: ['proportional', 'derivativ', 'integral',"light","food","days","hydro","Count"],
   },
   "Lights": {
     includeKeywords: ['light', 'sun'],
@@ -15,10 +16,10 @@ const groupMappings = {
   },
   'CO₂ Control': {
     includeKeywords: ['co2'],
-    excludeKeywords: [],
+    excludeKeywords: ['select'],
   },
-  "Watering": {
-    includeKeywords: ['pump', 'water'],
+  "Hydro Settings": {
+    includeKeywords: ['pump', 'water','Hydro'],
     excludeKeywords: [],
   },
   'Device Settings': {
@@ -26,8 +27,8 @@ const groupMappings = {
     excludeKeywords: ['debug'],
   },
   "Targets": {
-    includeKeywords: ['weight', 'min', 'max'],
-    excludeKeywords: ['co2',"min","max"],
+    includeKeywords: ['weight', 'min', 'max',],
+    excludeKeywords: ['co2','min','max'],
   },
   "Drying": {
     includeKeywords: ['drying'],
@@ -117,7 +118,6 @@ const ControllCollection = ({ option }) => {
       entity.entity_id.startsWith('select.') && entity.options.length > 0
   );
 
-
   const sliderEntities = filterEntitiesByKeywords(
     entities,
     includedKeywords,
@@ -127,7 +127,6 @@ const ControllCollection = ({ option }) => {
     (entity) => entity.entity_id.startsWith('number.') && entity.max > entity.min
   );
 
-
   const timeEntities = filterEntitiesByKeywords(
     entities,
     includedKeywords,
@@ -135,6 +134,12 @@ const ControllCollection = ({ option }) => {
     currentRoom
   ).filter((entity) => entity.entity_id.startsWith('time.'));
 
+  const switchEntities = filterEntitiesByKeywords(
+    entities,
+    includedKeywords,
+    excludedKeywords,
+    currentRoom
+  ).filter((entity) => entity.entity_id.startsWith('switch.'));
 
   return (
     <div>
@@ -143,7 +148,9 @@ const ControllCollection = ({ option }) => {
         <></>
       ) : (
         <>
-
+          {switchEntities.length > 0 && (
+            <SwitchCard entities={switchEntities} />
+          )}
           {dropdownEntities.length > 0 && (
             <SelectCard entities={dropdownEntities} />
           )}

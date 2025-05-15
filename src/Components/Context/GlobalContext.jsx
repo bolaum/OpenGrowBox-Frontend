@@ -1,4 +1,8 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import isValidJWT from '../../misc/isValidJWT';
+import tokenSetup from '../../misc/tokenChange';
+import ogbversions from '../../version';
+
 
 const GlobalStateContext = createContext();
 
@@ -18,14 +22,17 @@ const initialState = {
 };
 
 export const GlobalStateProvider = ({ children }) => {
+
   // Initialisierung des Zustands mit Werten aus dem localStorage, falls vorhanden
+ 
   const [state, setState] = useState(() => {
     const storedState = localStorage.getItem('globalOGBState');
     return storedState ? JSON.parse(storedState) : initialState;
   });
-  const [accessToken,setAccessToken] = useState(null)
   const [srvADDR,setSrvADDR] = useState(null)
   const [HASS,setHASS] = useState(null)
+  const [accessToken,setAccessToken] = useState(null)
+
   // Effekt zum Speichern des Zustands im localStorage bei Änderungen
   
   const setHASSAccessToken = (token) => {
@@ -47,6 +54,30 @@ export const GlobalStateProvider = ({ children }) => {
 
   useEffect(() => {
     if (import.meta.env.PROD) {
+      console.log(`
+        OpenGrowBox: 🌱🌱🌱🌱🌱🌱🌱🌱🌱🌱🌱
+        🖥 Frontend: ${ogbversions.frontend}
+        ⚙️ Backend: ${ogbversions.backend}
+        Happy GROWING 🌱🌱🌱🌱🌱🌱🌱🌱🌱🌱🌱
+        `)
+    }else{
+      console.log(`
+        OpenGrowBox: 🌱🌱🌱🌱🌱🌱🌱🌱🌱🌱🌱
+        🖥 Frontend: ${ogbversions.frontend}
+        ⚙️ Backend: ${ogbversions.backend}
+        Happy GROWING 🌱🌱🌱🌱🌱🌱🌱🌱🌱🌱🌱
+        `)
+    }
+
+    const hass = getHASS();
+    setHass(hass)
+    console.log("HASS:",hass)
+  
+  }, []);
+
+
+  useEffect(() => {
+    if (import.meta.env.PROD) {
       const hass = getHASS();
       setHass(hass)
       const haServer = hass.auth.data.hassUrl
@@ -60,8 +91,15 @@ export const GlobalStateProvider = ({ children }) => {
   }, [srvADDR]);
 
   useEffect(() => {
-    const token = localStorage.getItem('haToken')
-    setHASSAccessToken(token)
+    if (import.meta.env.PROD) {
+      const hass = getHASS();
+      const token = hass.states["text.ogb_accesstoken"].state
+      setHASSAccessToken(token)
+    }else{
+      const token = localStorage.getItem("devToken")
+      setHASSAccessToken(token)
+    }
+
   }, [accessToken]);
 
   useEffect(() => {
@@ -107,7 +145,7 @@ export const GlobalStateProvider = ({ children }) => {
             return hass
         }else{
             console.error("NO HASS Object in Dev-Mode")
-            return {NOHASS:"NOTHING"}
+            return {noHASS:"IN-DEV"}
         }
 
     }
@@ -121,6 +159,7 @@ export const GlobalStateProvider = ({ children }) => {
         setDeep,
         getHASS,
         HASS,
+        accessToken,
       }}
     >
       {children}
