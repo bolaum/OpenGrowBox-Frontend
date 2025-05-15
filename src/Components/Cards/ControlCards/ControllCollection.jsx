@@ -28,7 +28,7 @@ const groupMappings = {
   },
   "Targets": {
     includeKeywords: ['weight', 'min', 'max',],
-    excludeKeywords: ['co2','min','max'],
+    excludeKeywords: ['co2',],
   },
   "Drying": {
     includeKeywords: ['drying'],

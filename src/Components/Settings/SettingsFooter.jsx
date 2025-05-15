@@ -42,7 +42,7 @@ const SettingsFooter = () => {
 
 
   const handleDiscordClick = () => {
-    window.open('https://discord.gg/uKaK5fE4', '_blank');
+    window.open('https://discord.gg/TUeFmhDJKf', '_blank');
   };
 
 
