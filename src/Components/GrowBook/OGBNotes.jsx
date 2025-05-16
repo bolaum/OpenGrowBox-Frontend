@@ -81,7 +81,7 @@ const OGBNotes = () => {
   return (
     <NotesContainer>
       <Title>{currentRoom}`s Notes</Title>
-      <form onSubmit={handleSubmit}>
+      <StyledForm onSubmit={handleSubmit}>
         <TextArea
           maxLength={MAX_LENGTH}
           value={noteText}
@@ -90,7 +90,7 @@ const OGBNotes = () => {
         />
         <InfoText>{noteText.length}/{MAX_LENGTH} Zeichen</InfoText>
         <Button type="submit">Speichern</Button>
-      </form>
+      </StyledForm>
       {status && <StatusText>{status}</StatusText>}
     </NotesContainer>
   );
@@ -103,40 +103,65 @@ const NotesContainer = styled.div`
   padding: 0.7rem;
   border: 1px solid var(--secondary-accent);
   border-radius: 1rem;
-  max-width: 22rem;
   width: 100%;
-  min-height: 10rem;
+  max-width: 22rem;
+  min-height: 15rem;
   background: var(--main-bg-card-color);
   color: var(--main-text-color);
   box-shadow: var(--main-shadow-art);
   font-size: 0.95rem;
   margin: 0.5rem auto;
+
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+
+  @media (max-width: 380px) {
+    padding: 0.1rem;
+    font-size: 0.85rem;
+  }
 `;
 
+const Title = styled.h4`
+  margin: 0 0 0.5rem 0;      /* Kein Top-Margin mehr, nur 0.5rem Bottom */
+  color: var(--main-text-color);
+  font-size: 1rem;
+  font-weight: 600;
+  word-break: break-word;
+
+  @media (max-width: 380px) {
+    font-size: 0.9rem;
+  }
+`;
+
+const StyledForm = styled.form`
+  margin: 0; /* <- entfernt unerwünschten Außenabstand */
+  padding: 0;
+`;
 const TextArea = styled.textarea`
   width: 100%;
-  height: 10rem;
+  min-height: 8rem;
   font-size: 0.9rem;
   padding: 0.6rem;
   border-radius: 10px;
   border: 1px solid var(--primary-accent);
   background-color: var(--main-bg-Innercard-color);
   color: var(--main-text-color);
-  resize: none;
+  resize: vertical;
   outline: none;
+  box-sizing: border-box;
 
   &:focus {
     border-color: var(--secondary-accent);
     box-shadow: 0 0 0 2px var(--secondary-accent);
   }
+
+  @media (max-width: 380px) {
+    font-size: 0.8rem;
+    padding: 0.4rem;
+  }
 `;
 
-const InfoText = styled.div`
-  text-align: right;
-  margin-top: 0.25rem;
-  color: var(--second-text-color);
-  font-size: 0.8rem;
-`;
 
 const Button = styled.button`
   margin-top: 0.5rem;
@@ -149,11 +174,18 @@ const Button = styled.button`
   border-radius: 8px;
   cursor: pointer;
   transition: background-color 0.3s;
+  max-width: 100%;
 
   &:hover {
     background-color: var(--main-hover-color);
   }
+
+  @media (max-width: 380px) {
+    font-size: 0.75rem;
+    padding: 0.3rem 0.6rem;
+  }
 `;
+
 
 const StatusText = styled.div`
   margin-top: 0.4rem;
@@ -162,9 +194,16 @@ const StatusText = styled.div`
   font-weight: 600;
 `;
 
-const Title = styled.h4`
-  margin-bottom: 0.5rem;
-  color: var(--main-text-color);
-  font-size: 1rem;
-  font-weight: 600;
+
+
+const InfoText = styled.div`
+  text-align: right;
+  margin-top: 0.25rem;
+  color: var(--second-text-color);
+  font-size: 0.8rem;
+  word-break: break-word;
+
+  @media (max-width: 380px) {
+    font-size: 0.7rem;
+  }
 `;
