@@ -39,7 +39,8 @@
 
 ## 💻 Demo / Screenshot
 
-![Dashboard Preview](docs/screenshot-dashboard.png)
+![Dashboard Preview](![image](https://github.com/user-attachments/assets/eea1aa9f-06b7-4d06-a386-f4b1d49e80ae)
+)
 
 ---
 
