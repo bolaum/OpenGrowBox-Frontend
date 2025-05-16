@@ -22,7 +22,7 @@ const initialState = {
 };
 
 export const GlobalStateProvider = ({ children }) => {
-  const haHostDev = import.meta.env.HA_HOST;
+  const haHostDev = import.meta.env.VITE_HA_HOST;
   // Initialisierung des Zustands mit Werten aus dem localStorage, falls vorhanden
  
   const [state, setState] = useState(() => {
