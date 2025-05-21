@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { FaDiscord, FaTelegram } from 'react-icons/fa';
 import ogbversions from '../../version';
+
 const SettingsFooter = () => {
   const currentYear = new Date().getFullYear();
   const [appVersion, setAppVersion] = useState('Laden...');

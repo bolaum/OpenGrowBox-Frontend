@@ -16,7 +16,7 @@ const groupMappings = {
   },
   'CO₂ Control': {
     includeKeywords: ['co2'],
-    excludeKeywords: ['select'],
+    excludeKeywords: ["Device"],
   },
   "Hydro Settings": {
     includeKeywords: ['pump', 'water','Hydro'],

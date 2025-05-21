@@ -124,16 +124,10 @@ OpenGrowBox-Frontend/
 │   ├── assets/          # Images, logos, icons
 │   ├── components/      # Reusable UI components (DeviceCard, OGBNotes, etc.)
 │   ├── context/         # HomeAssistantContext, ThemeContext
-│   ├── hooks/           # Custom hooks
 │   ├── pages/           # Route-based views (Dashboard, Settings)
-│   ├── services/        # API client, WebSocket handlers
-│   ├── styles/          # GlobalStyle, theme definitions
-│   ├── utils/           # Helpers, formatters
-│   └── index.tsx        # App entrypoint
 ├── docs/                # Documentation assets (screenshots, diagrams)
-├── .env.example         # Env vars example
+├── .envtemplate         # Env vars example
 ├── package.json         # Scripts & dependencies
-├── tsconfig.json        # TypeScript config
 └── README.md            # This file
 ```
 
@@ -199,7 +193,7 @@ Be sure to follow the existing code style and include tests where applicable.
 If you run into issues or have questions, please open an issue on GitHub or join our Discord channel:
 
 * Issues: [https://github.com/OpenGrow-Box/OpenGrowBox-Frontend/issues](https://github.com/OpenGrow-Box/OpenGrowBox-Frontend/issues)
-* Discord: [https://discord.gg/your-invite-link](https://discord.gg/your-invite-link)
+* Discord: [https://discord.gg/your-invite-link](https://discord.gg/TUeFmhDJKf)
 
 ---
 

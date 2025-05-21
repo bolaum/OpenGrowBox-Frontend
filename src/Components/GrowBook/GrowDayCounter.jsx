@@ -94,7 +94,9 @@ const GrowDayCounter = () => {
           </CardHeader>
           <InputSection>
             <InputGroup>
-              <InputLabel>Breeder Bloom Days (FlowerTime):</InputLabel>
+            <InputLabel>
+              Breeder Bloom Days (FlowerTime): <Highlight>{currentRoom}</Highlight>
+            </InputLabel>
               <StyledInput
                 type="number"
                 value={formatNumber(breederTarget)}
@@ -235,4 +237,8 @@ const DisplayValue = styled.span`
   font-size: 1rem;
   font-weight: bold;
   color:var(--primary-accent);
+`;
+const Highlight = styled.span`
+  color: var(--second-text-color);
+  font-weight: bold;
 `;

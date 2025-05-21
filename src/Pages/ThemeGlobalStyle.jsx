@@ -38,7 +38,7 @@ const GlobalStyle = createGlobalStyle`
     --secondary-accent:rgba(219, 10, 226, 0.66);
 
     --main-text-color: #ffffff;
-    --second-text-color:rgb(117, 100, 100);
+    --second-text-color:rgb(208, 112, 9);
     --error-text-color:rgba(225, 19, 19, 0.82);
 
     --primary-button-color: rgba(64, 226, 10, 0.82);

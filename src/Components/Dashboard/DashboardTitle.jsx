@@ -44,7 +44,7 @@ const DashboardTitle = ({firstText,secondText,thirdText}) => {
         >
 
 
-          <AnimatedLogo/>
+          <CannabisIcon/>
         </motion.div>
       </AnimatePresence>
 
