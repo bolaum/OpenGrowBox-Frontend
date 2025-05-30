@@ -1,6 +1,6 @@
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, color } from 'framer-motion';
 import styled from 'styled-components';
-import { FaCannabis } from 'react-icons/fa';
+import OGBIcon from '../../misc/OGBIcon'
 
 const DashboardTitle = ({firstText,secondText,thirdText}) => {
   return (
@@ -55,6 +55,7 @@ const DashboardTitle = ({firstText,secondText,thirdText}) => {
 
 const CannabisIcon = () => (
   <motion.span
+
     initial={{ color: "#4CAF50" }}
     animate={{ color: ["#4CAF50", "#FF9800"] }}
     transition={{
@@ -64,27 +65,8 @@ const CannabisIcon = () => (
     }}
     style={{ display: 'inline-block' }}
   >
-    <FaCannabis size={24} />
-
-
+    <OGBIcon style={{ width: '1.2em', height: '1.2em' }} />
   </motion.span>
-);
-
-const AnimatedLogo = () => (
-  <motion.img
-    src="/ogb_logo.svg"
-    alt="OpenGrowBox Logo"
-    width={32}
-    height={32}
-    animate={{ scale: [1, 1.1, 1], rotate: [0, 5, -5, 0] }}
-    transition={{
-      duration: 4,
-      repeat: Infinity,
-      repeatType: 'mirror',
-      ease: 'easeInOut'
-    }}
-    style={{ display: 'inline-block' }}
-  />
 );
 
 
@@ -102,6 +84,7 @@ const TitleContainer = styled.div`
     transition: all 0.3s ease;
   }
 
+
   &:hover {
     span:first-child {
       color:rgb(23, 219, 32);
@@ -115,6 +98,8 @@ const TitleContainer = styled.div`
       color:rgb(227, 168, 20);
     }
     svg {
+      width: 1.2rem;
+      height: 1.2rem;
       transform: scale(1.1) rotate(15deg);
     }
   }

@@ -3,14 +3,7 @@ import styled, { keyframes } from 'styled-components';
 import ReactECharts from 'echarts-for-react';
 import { useHomeAssistant } from '../Context/HomeAssistantContext';
 import { useGlobalState } from '../Context/GlobalContext';
-import { FaCannabis } from 'react-icons/fa';
-
-const LoadingIndicator = () => (
-  <LoadingContainer>
-    <FaCannabis className="loading-icon" />
-    <p>Smoking data...</p>
-  </LoadingContainer>
-);
+import { FaLeaf } from 'react-icons/fa';
 
 const SensorChart = ({ sensorId, minThreshold = 0, maxThreshold = 2000, title = 'Sensor', unit = '' }) => {
   const getDefaultDate = (offset = 0) => {
@@ -235,7 +228,7 @@ const bounce = keyframes`
   }
 `;
 
-const LoadingIcon = styled(FaCannabis)`
+const LoadingIcon = styled(FaLeaf)`
   animation: ${bounce} 1s infinite;
   color: green;
   margin-left:1rem;

@@ -2,11 +2,12 @@ import React, { useState } from 'react';
 import styled from 'styled-components';
 
 import { MdLightMode,MdOutlineCo2, MdDeviceHub} from "react-icons/md";
-import { FaCannabis } from "react-icons/fa";
 import { ImTarget } from "react-icons/im";
-import { PiDiamondsFourBold } from "react-icons/pi";
 import ControllCollection from './ControlCards/ControllCollection';
 import { GiWateringCan } from "react-icons/gi";
+import OGBIcon from '../../misc/OGBIcon'
+
+
 const ControllCard = () => {
   const [currentOption, setCurrentOption] = useState("Main Control");
 
@@ -18,7 +19,7 @@ const ControllCard = () => {
     <>
       <OptionContainer>
         <IconWrapper $active={currentOption === "Main Control"} onClick={() => handleOnClickIcon("Main Control")}>
-          <FaCannabis />
+          <OGBIcon />
         </IconWrapper>
         <IconWrapper $active={currentOption === "Lights"} onClick={() => handleOnClickIcon("Lights")}>
           <MdLightMode />
@@ -34,10 +35,7 @@ const ControllCard = () => {
         </IconWrapper>
 
           {/***
-           *         <IconWrapper $active={currentOption === "P.I.D"} onClick={() => handleOnClickIcon("P.I.D")}>
-          <PiDiamondsFourBold />
-        </IconWrapper>
-
+           *
         <IconWrapper $active={currentOption === "Device Settings"} onClick={() => handleOnClickIcon("Device Settings")}>
           <MdDeviceHub />
         </IconWrapper>
@@ -77,7 +75,10 @@ const IconWrapper = styled.div`
   color: ${(props) => (props.$active ? "var(--primary-button-color)" : "var(--main-text-color)")};
   cursor: pointer;
   transition: color 0.3s ease;
-
+  svg {
+    width: 1em;
+    height: 1em;
+  }
   &:hover {
     color: var(--secondary-hover-color);
   }

@@ -1,6 +1,4 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import isValidJWT from '../../misc/isValidJWT';
-import tokenSetup from '../../misc/tokenChange';
 import ogbversions from '../../version';
 
 
