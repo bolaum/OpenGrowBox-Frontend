@@ -8,7 +8,7 @@ import { useHomeAssistant } from "../../Context/HomeAssistantContext"
 const groupMappings = {
   'Main Control': {
     includeKeywords: ['vpd', 'plant', 'mode', 'leaf','ambient'],
-    excludeKeywords: ['proportional', 'derivativ', 'integral',"light","food","days","hydro","Count","Borrow","ambient","work"],
+    excludeKeywords: ['proportional', 'derivativ', 'integral',"light","food","days","hydro","Count","Borrow","ambient"],
   },
   "Lights": {
     includeKeywords: ['light', 'sun'],
