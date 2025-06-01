@@ -13,6 +13,8 @@ import PHCard from '../Cards/SliderCards/PHCard';
 
 import VPDCard from '../Cards/SliderCards/VPDCard'
 import DutyCycleCard from '../Cards/SliderCards/DutyCycleCard'
+import LightIntensity from '../Cards/SliderCards/LightIntensity'
+
 
 const DashboardSlider = () => {
   const slides = [
@@ -38,9 +40,11 @@ const DashboardSlider = () => {
       <PHCard/>
     </SlideContent>,
     <SlideContent key="slide7">
-    <DutyCycleCard/>
-  </SlideContent>,
-
+      <DutyCycleCard/>
+    </SlideContent>,
+    <SlideContent key="slide8">
+      <LightIntensity/>
+    </SlideContent>,
   ];
 
   const [currentIndex, setCurrentIndex] = useState(0);
