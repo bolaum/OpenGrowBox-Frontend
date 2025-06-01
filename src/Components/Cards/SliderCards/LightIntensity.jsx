@@ -21,22 +21,34 @@ const LightIntensity = () => {
     const LightIntensityCheck = () => {
       const sensors = Object.entries(entities)
         .filter(([key, entity]) => {
-
-          const isValidDomain = key.startsWith('number.') || key.startsWith('sensor.');
+          const isValidDomain = key.startsWith('number.') || key.startsWith('sensor.') || key.startsWith('switch.');
           const isIntensity = key.toLowerCase().includes('intensity');
-          const hasNumericState = !isNaN(parseFloat(entity.state));
-          return isIntensity && isValidDomain && hasNumericState;
+          const hasState = entity?.state !== undefined;
+          return isIntensity && isValidDomain && hasState;
         })
-        .map(([key, entity]) => ({
-          id: key,
-          value: Math.floor(parseFloat(entity.state) * 10),
-          unit: '%',
-          friendlyName: formatLabel(entity.attributes?.friendly_name || key),
-          entity_id: entity.entity_id,
-        }));
+        .map(([key, entity]) => {
+          let value = parseFloat(entity.state);
+          let unit = entity.attributes?.unit_of_measurement || '';
+          
+          // Sonderbehandlung für Volt → Prozent
+          if (unit.toLowerCase() === 'v') {
+            value = value * 10; // 0-10V → 0-100%
+            unit = '%';
+          }
+
+          return {
+            id: key,
+            value: value,
+            unit: unit,
+            friendlyName: formatLabel(entity.attributes?.friendly_name || key),
+            entity_id: entity.entity_id,
+          };
+        });
 
       setLightIntensity(sensors);
+      console.log(sensors);
     };
+
     LightIntensityCheck();
   }, [entities]);
 
