@@ -3,11 +3,11 @@ import styled from 'styled-components';
 import ReactECharts from 'echarts-for-react';
 
 import { useGlobalState } from '../Context/GlobalContext';
-import { FaCannabis } from 'react-icons/fa';
+import { FaLeaf } from 'react-icons/fa';
 
 const LoadingIndicator = () => (
   <LoadingContainer>
-    <FaCannabis className="loading-icon" />
+    <FaLeaf className="loading-icon" />
     <p>Loading data...</p>
   </LoadingContainer>
 );
@@ -28,11 +28,22 @@ const HistoryChart = ({ sensorId, onClose, minThreshold = 400, maxThreshold = 12
   const [chartOptions, setChartOptions] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [selectedView, setSelectedView] = useState(() => localStorage.getItem('selectedView') || 'Daily');
 
 
   const {state} = useGlobalState();
   const srvAddr = state?.Conf?.hassServer
   const token = state?.Conf?.haToken
+
+  useEffect(() => {
+    if (selectedView === 'daily') {
+      setStartDate(getDefaultDate(-24 * 60 * 60 * 1000));
+    } else if (selectedView === 'weekly') {
+      setStartDate(getDefaultDate(-7 * 24 * 60 * 60 * 1000));
+    }
+    setEndDate(getDefaultDate());
+  }, [selectedView]);
+
 
 
   const fetchHistoryData = async () => {
@@ -141,6 +152,18 @@ const HistoryChart = ({ sensorId, onClose, minThreshold = 400, maxThreshold = 12
   return (
     <HistoryContainer>
       <Header>{sensorId}</Header>
+      <ChartMenu>
+        {['daily', 'weekly'].map(view => (
+          <ViewButton
+            key={view}
+            $isActive={selectedView === view}
+            onClick={() => setSelectedView(view)}
+          >
+            {view}
+          </ViewButton>
+        ))}
+      </ChartMenu> 
+
       <DateInputs>
         <label>
           Start:
@@ -220,5 +243,23 @@ const LoadingContainer = styled.div`
   @keyframes blink {
     0%, 100% { opacity: 1; }
     50% { opacity: 0; }
+  }
+`;
+
+const ChartMenu = styled.div`
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+`;
+
+const ViewButton = styled.button`
+  background: ${props => (props.$isActive ? 'var(--primary-button-color)' : '#333')};
+  color: var(--main-text-color);
+  border: none;
+  cursor: pointer;
+  padding: 0.3rem 0.6rem;
+  &:hover {
+    background: var(--primary-button-color);
   }
 `;
