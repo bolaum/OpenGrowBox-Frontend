@@ -46,7 +46,6 @@ const LightIntensity = () => {
         });
 
       setLightIntensity(sensors);
-      console.log(sensors);
     };
 
     LightIntensityCheck();

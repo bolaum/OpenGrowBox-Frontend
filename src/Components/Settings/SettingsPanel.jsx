@@ -5,22 +5,23 @@ import { useNavigate } from 'react-router-dom';
 import SettingsFooter from './SettingsFooter';
 import { useHomeAssistant } from '../Context/HomeAssistantContext';
 import ControlMode from './ControlMode';
-
+import tokenSetup from '../../misc/tokenChange';
 // Definiere deine Themes mit den entsprechenden CSS-Variablen
 
 
 const SettingsPanel = () => {
   const { state, setDeep } = useGlobalState();
-  const {roomOptions} = useHomeAssistant()
+  const {roomOptions,connection} = useHomeAssistant()
   const currentTheme = state.Design.theme;
   const availableThemes = state.Design.availableThemes;
 
   // Funktion, um das Theme anzuwenden, indem CSS-Variablen gesetzt werden
   const navigate = useNavigate();
    
-  const clearAppStates = () => {
+  const clearAppStates = async () => {
     localStorage.removeItem("globalOGBState")
     setDeep('Conf.haToken',null);
+    await tokenSetup("text.ogb_accesstoken","Enter New Token",connection)
     navigate('/setup')
   }
 

@@ -1,5 +1,8 @@
+
+
+
 const ogbversions = {
-    backend:"v1.2.1.4",
-    frontend:"1.0.6",
+    backend:"v1.2.2.9_2",
+    frontend:"1.0.7",
 }
 export default ogbversions
