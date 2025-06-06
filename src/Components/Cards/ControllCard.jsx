@@ -33,7 +33,6 @@ const ControllCard = () => {
         <IconWrapper $active={currentOption === "Hydro Settings"} onClick={() => handleOnClickIcon("Hydro Settings")}>
           <GiWateringCan />
         </IconWrapper>
-
         <IconWrapper $active={currentOption === "Device Settings"} onClick={() => handleOnClickIcon("Device Settings")}>
           <MdDeviceHub />
         </IconWrapper>

@@ -24,11 +24,11 @@ const groupMappings = {
   },
   'Device Settings': {
     includeKeywords: ['device'],
-    excludeKeywords: ['debug'],
+    excludeKeywords: ['debug',"1","2","3"],
   },
   "Targets": {
     includeKeywords: ['weight', 'min', 'max',],
-    excludeKeywords: ['co2',],
+    excludeKeywords: ['co2',"Light","Inhaust"],
   },
   "Drying": {
     includeKeywords: ['drying'],
