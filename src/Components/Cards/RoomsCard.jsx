@@ -1,4 +1,3 @@
-import React from 'react';
 import { useHomeAssistant } from '../Context/HomeAssistantContext';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';

@@ -1,4 +1,3 @@
-import * as React from "react";
 const OGBIcon = (props) => (
   <svg
     viewBox="0 0 143 149"

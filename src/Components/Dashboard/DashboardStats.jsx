@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import styled from 'styled-components';
 
 import { useHomeAssistant } from '../Context/HomeAssistantContext';
@@ -13,6 +13,7 @@ const DashboardStats = () => {
   const formatLabel = (label) => {
     return label
       .replace(/^OGB_AVG/, '') // Entferne "OGB_
+
       .replace(/^OGB_Current/, '') // Entferne "OGB_"
       .replace(/_/g, ' ') // Ersetze Unterstriche mit Leerzeichen
       .replace(new RegExp(`${currentRoom}$`, 'i'), '') // Entferne "currentRoom" dynamisch, wenn es am Ende steht

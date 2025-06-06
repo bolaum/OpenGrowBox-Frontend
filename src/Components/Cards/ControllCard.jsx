@@ -34,13 +34,9 @@ const ControllCard = () => {
           <GiWateringCan />
         </IconWrapper>
 
-          {/***
-           *
         <IconWrapper $active={currentOption === "Device Settings"} onClick={() => handleOnClickIcon("Device Settings")}>
           <MdDeviceHub />
         </IconWrapper>
-           * 
-           * ***/}
 
       </OptionContainer>
       <SelectContainer>

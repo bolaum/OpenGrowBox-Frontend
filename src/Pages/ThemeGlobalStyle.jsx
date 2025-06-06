@@ -1,4 +1,3 @@
-import React from 'react';
 import { useGlobalState } from '../Components/Context/GlobalContext';
 import { createGlobalStyle } from 'styled-components';
 

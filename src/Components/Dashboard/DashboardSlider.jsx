@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { LiaPlayCircle, LiaPauseCircle } from "react-icons/lia";
 import { motion } from "framer-motion";  // Importiere Framer Motion

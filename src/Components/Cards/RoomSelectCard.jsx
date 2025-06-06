@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import styled from 'styled-components';
 import { FaChevronDown } from 'react-icons/fa'; 
 import { motion } from 'framer-motion';

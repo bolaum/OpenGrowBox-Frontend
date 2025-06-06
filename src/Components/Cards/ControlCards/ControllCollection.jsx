@@ -12,7 +12,7 @@ const groupMappings = {
   },
   "Lights": {
     includeKeywords: ['light', 'sun'],
-    excludeKeywords: ['device'],
+    excludeKeywords: ['Device'],
   },
   'CO₂ Control': {
     includeKeywords: ['co2'],
@@ -20,7 +20,7 @@ const groupMappings = {
   },
   "Hydro Settings": {
     includeKeywords: ['pump', 'water','Hydro'],
-    excludeKeywords: [],
+    excludeKeywords: ["Device"],
   },
   'Device Settings': {
     includeKeywords: ['device'],

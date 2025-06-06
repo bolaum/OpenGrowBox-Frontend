@@ -1,6 +1,4 @@
-import React from 'react';
 import styled from 'styled-components';
-
 import RoomSelectCard from '../Cards/RoomSelectCard';
 import ControllCard from '../Cards/ControllCard';
 

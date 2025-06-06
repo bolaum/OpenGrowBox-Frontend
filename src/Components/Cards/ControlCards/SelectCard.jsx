@@ -1,4 +1,4 @@
-import React from 'react';
+
 import styled from 'styled-components';
 import { useHomeAssistant } from "../../Context/HomeAssistantContext"
 const SelectCard = ({ entities }) => {
