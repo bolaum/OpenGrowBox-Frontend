@@ -26,16 +26,16 @@ const groupMappings = {
   },
   'Device Settings': {
     includeKeywords: ['device'],
-    excludeKeywords: ['debug', "1", "2", "3"],
+    excludeKeywords: [],
   },
   "Targets": {
     includeKeywords: ['weight', 'min', 'max'],
-    excludeKeywords: ['co2', "Light", "Intake"],
+    excludeKeywords: ['co2', "Light", "Inhaust"],
   },
   "Drying": {
     includeKeywords: ['drying'],
     excludeKeywords: [
-      'vpd', 'temp', 'hum',  'light',
+      'device', 'vpd', 'temp', 'hum', 'co2', 'light',
       'sun', 'stage', 'plant', 'leaf', 'borrow', 'weigh',
     ],
   },
@@ -108,7 +108,7 @@ const ControllCollection = ({ option }) => {
     [`ogb_owndevicesets_${currentRoom.toLowerCase()}`]: 'If enabled you can use The List bellow to map a Entitiy to an Device Type, Default The Naming Convention take action until you Enable "Own Device Sets"',
     [`ogb_light_device_select_${currentRoom.toLowerCase()}`]: 'Select your Entiy as Light, Works only with "Own Devices Sets Enabled',    
     [`ogb_exhaust_device_select_${currentRoom.toLowerCase()}`]: 'Select your Entiy as Exhaust, Works only with "Own Devices Sets Enabled',
-    [`ogb_intake_device_select_${currentRoom.toLowerCase()}`]: 'Select your Entiy as Intake, Works only with "Own Devices Sets Enabled',
+    [`ogb_inhaust_device_select_${currentRoom.toLowerCase()}`]: 'Select your Entiy as Inhaust, Works only with "Own Devices Sets Enabled',
     [`ogb_vents_device_select_${currentRoom.toLowerCase()}`]: 'Select your Entiy as Ventilation, Works only with "Own Devices Sets Enabled',    
     [`ogb_humidifier_device_select_${currentRoom.toLowerCase()}`]: 'Select your Entiy as Humidifier, Works only with "Own Devices Sets Enabled',
     [`ogb_dehumidifier_device_select_${currentRoom.toLowerCase()}`]: 'Select your Entiy as Dehumidifier, Works only with "Own Devices Sets Enabled',
