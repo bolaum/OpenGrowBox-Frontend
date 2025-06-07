@@ -30,14 +30,15 @@ const TimeCard = ({ entities }) => {
   return (
     <Container>
       {entities.map((entity) => (
-        <Card key={entity.entity_id}>
-          <Title>{entity.title}</Title>
-          <TimeInput
-            type="time"
-            value={entity.state}
-            onChange={(e) => handleTimeChange(entity, e.target.value)}
-          />
-        </Card>
+      <Card key={entity.entity_id}>
+        <Tooltip>{entity.tooltip}</Tooltip>  {/* Tooltip hier */}
+        <Title>{entity.title}</Title>
+        <TimeInput
+          type="time"
+          value={entity.state}
+          onChange={(e) => handleTimeChange(entity, e.target.value)}
+        />
+      </Card>
       ))}
     </Container>
   );
@@ -53,7 +54,25 @@ const Container = styled.div`
   margin-top: 0.45rem;
 `;
 
+
+const Tooltip = styled.div`
+  position: absolute;
+  top: -1.5rem;
+  left: 1rem;
+  background-color: rgba(50, 50, 50, 0.9);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s ease-in-out;
+`;
+
+
 const Card = styled.div`
+  position: relative;  /* wichtig für Tooltip */
   background: var(--main-bg-Innercard-color);
   border-radius: 8px;
   padding: 0.2rem;
@@ -62,7 +81,12 @@ const Card = styled.div`
   flex-direction: row;
   align-items: center;
   justify-content: space-around;
+
+  &:hover ${Tooltip} {
+    opacity: 1;
+  }
 `;
+
 
 const Title = styled.p`
   font-size: 0.8rem;

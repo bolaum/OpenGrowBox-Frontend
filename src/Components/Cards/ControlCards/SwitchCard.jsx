@@ -31,19 +31,21 @@ const SwitchCard = ({ entities }) => {
   return (
     <Container>
       {entities.map((entity) => (
-        <Card key={entity.entity_id}>
-          <CardHeader>
-            <Title>{entity.title || entity.entity_id}</Title>
-            <ToggleSwitch>
-              <SwitchInput
-                type="checkbox"
-                checked={entity.state === 'on'}
-                onChange={() => handleToggle(entity)}
-              />
-              <SliderTrack />
-            </ToggleSwitch>
-          </CardHeader>
-        </Card>
+      <Card key={entity.entity_id}>
+        <CardHeader>
+          <Tooltip>{entity.tooltip}</Tooltip> {/* Tooltip anzeigen */}
+          <Title>{entity.title || entity.entity_id}</Title>
+          <ToggleSwitch>
+            <SwitchInput
+              type="checkbox"
+              checked={entity.state === 'on'}
+              onChange={() => handleToggle(entity)}
+            />
+            <SliderTrack />
+          </ToggleSwitch>
+        </CardHeader>
+      </Card>
+
       ))}
     </Container>
   );
@@ -60,14 +62,38 @@ const Container = styled.div`
   gap: 0.4rem;
 `;
 
+const Tooltip = styled.div`
+  position: absolute;
+  top: -1.5rem;
+  left: 0;
+  background-color: rgba(50, 50, 50, 0.9);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s ease-in-out;
+`;
+
+
 const Card = styled.div`
-  background:rgba(83, 61, 85, 0.29);;
+  position: relative; /* Für Tooltip-Positionierung */
+  background: rgba(83, 61, 85, 0.29);
   border-radius: 8px;
-  box-shadow: rgba(0, 0, 0, 0.25) 0px 54px 55px, rgba(0, 0, 0, 0.12) 0px -12px 30px, rgba(0, 0, 0, 0.12) 0px 4px 6px, rgba(0, 0, 0, 0.17) 0px 12px 13px, rgba(0, 0, 0, 0.09) 0px -3px 5px;
+  box-shadow: rgba(0, 0, 0, 0.25) 0px 54px 55px, rgba(0, 0, 0, 0.12) 0px -12px 30px,
+    rgba(0, 0, 0, 0.12) 0px 4px 6px, rgba(0, 0, 0, 0.17) 0px 12px 13px,
+    rgba(0, 0, 0, 0.09) 0px -3px 5px;
   display: flex;
   justify-content: space-between;
   align-items: center;
+
+  &:hover ${Tooltip} {
+    opacity: 1;
+  }
 `;
+
 
 const CardHeader = styled.div`
   display: flex;

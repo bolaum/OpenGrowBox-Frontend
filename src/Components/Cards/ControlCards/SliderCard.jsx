@@ -33,6 +33,7 @@ const SliderCard = ({ entities }) => {
       {entities.map((entity) => (
         <Card key={entity.entity_id}>
           <CardHeader>
+            <Tooltip>{entity.tooltip}</Tooltip>
             <Title>{entity.title}</Title>
             <Value>{entity.state}</Value>
             <Unit>{entity.unit}</Unit>
@@ -66,13 +67,34 @@ const Container = styled.div`
   color:var(--main-text-color);
 `;
 
+const Tooltip = styled.div`
+  position: absolute;
+  top: -1.5rem;
+  left: 1rem;
+  background-color: rgba(50, 50, 50, 0.9);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0; /* standardmäßig versteckt */
+  transition: opacity 0.2s ease-in-out;
+`;
+
 const Card = styled.div`
-  background:var(--main-bg-Innercard-color);
+  position: relative; /* wichtig für Tooltip */
+  background: var(--main-bg-Innercard-color);
   border-radius: 8px;
-  box-shadow:var(--main-shadow-art);
+  box-shadow: var(--main-shadow-art);
   display: flex;
   flex-direction: column;
+
+  &:hover ${Tooltip} {
+    opacity: 1; /* Tooltip bei Hover anzeigen */
+  }
 `;
+
 
 const CardHeader = styled.div`
   display: flex;
