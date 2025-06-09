@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import { useHomeAssistant } from '../../Context/HomeAssistantContext';
 import HistoryChart from '../HistoryChart';
 
-const HumCard = () => {
+const HumCard = ({pause,resume}) => {
   const { entities, connection } = useHomeAssistant();
   const [humSensors, setHumSensors] = useState([]);
   const [selectedSensor, setSelectedSensor] = useState(null); // State für den ausgewählten Sensor
@@ -62,14 +62,14 @@ const HumCard = () => {
     return '#ef4444'; // Rot (extrem feucht)
   };
 
-  // Funktion zum Öffnen des Modals für einen Sensor
   const handleDataBoxClick = (sensorId) => {
+    pause(); 
     setSelectedSensor(sensorId);
   };
 
-  // Funktion zum Schließen des Modals
   const closeHistoryChart = () => {
     setSelectedSensor(null);
+    resume(); 
   };
 
   return (

@@ -8,7 +8,8 @@ import { FaLeaf } from 'react-icons/fa';
 const SensorChart = ({ sensorId, minThreshold = 0, maxThreshold = 2000, title = 'Sensor', unit = '' }) => {
   const getDefaultDate = (offset = 0) => {
     const date = new Date(Date.now() + offset);
-    return date.toISOString();
+    const localISOTime = date.toISOString();
+    return localISOTime;
   };
 
   const {currentRoom} = useHomeAssistant()
@@ -71,7 +72,9 @@ const SensorChart = ({ sensorId, minThreshold = 0, maxThreshold = 2000, title = 
         
         const data = await response.json();
         const sensorData = data?.[0] || [];
-        const xData = sensorData.map(item => item.last_changed);
+        const xData = sensorData.map(item =>
+          new Date(item.last_changed).toLocaleString([], { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' })
+        );
         const yData = sensorData.map(item => parseFloat(item.state));
         
         const formattedData = yData.map(value => ({
@@ -79,50 +82,63 @@ const SensorChart = ({ sensorId, minThreshold = 0, maxThreshold = 2000, title = 
           itemStyle: { color: value < minThreshold ? 'red' : value > maxThreshold ? 'blue' : 'green' },
         }));
         
-        setChartOptions({
-          title: {
-            text: `${title.toUpperCase()}`,
-            subtext: `${currentRoom}`,
-            left: 'center',
-            textStyle: { color: '#fff', fontSize: 15 },
-          },
-          tooltip: {
-            trigger: 'axis',
-            backgroundColor: 'rgba(0,0,0,0.7)',
-            textStyle: { color: '#fff' },
-          },
-          xAxis: { 
-            type: 'category', 
-            data: xData,
-            axisLine: { lineStyle: { color: '#fff' } },
-            axisLabel: { formatter: value => new Date(value).toLocaleTimeString() } 
-          },
-          yAxis: { 
-            type: 'value',
-            axisLine: { lineStyle: { color: '#fff' } },
-            splitLine: { lineStyle: { color: 'rgba(215,205,205,0.36)' } },
-            axisLabel: { color: '#fff' },
-           },
-          series: [{ 
-            data: formattedData, 
-            type: 'line', 
-            smooth: true,
-            areaStyle: {
-              color: {
-                type: 'linear',
-                x: 0, y: 0, x2: 0, y2: 1,
-                colorStops: [
-                  { offset: 0, color: 'rgba(76,175,80,0.8)' },
-                  { offset: 1, color: 'rgba(76,175,80,0.2)' },
-                ],
-              },
-            },
-            lineStyle: { color: '#4caf50', width: 3 },
-            itemStyle: { color: '#4caf50' },
-          },
-        ],
-        grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
-        });
+    setChartOptions({
+      tooltip: {
+        trigger: 'axis',
+        backgroundColor: '#1f1f1f',
+        borderColor: '#333',
+        borderWidth: 1,
+        textStyle: { color: '#fff' },
+        axisPointer: { type: 'cross' },
+        formatter: params => {
+          const point = params[0];
+          const time = new Date(point.axisValue).toLocaleString('de-DE', {
+            day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'
+          });
+          return `
+            <div style="color:white">
+              <strong>${time}</strong><br/>
+              ● <span style="color:lime">${point.data.value}</span>
+            </div>
+          `;
+        }
+      },
+      grid: { left: '5%', right: '5%', bottom: '10%', containLabel: true },
+      xAxis: {
+        type: 'category',
+        data: xData,
+        boundaryGap: false,
+        axisLine: { lineStyle: { color: '#666' } },
+        axisLabel: {
+          color: '#aaa',
+          formatter: value =>
+            new Date(value).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        },
+      },
+      yAxis: {
+        type: 'value',
+        axisLine: { lineStyle: { color: '#666' } },
+        splitLine: { lineStyle: { color: 'rgba(255,255,255,0.1)' } },
+        axisLabel: { color: '#aaa' },
+      },
+      series: [{
+        data: formattedData,
+        type: 'line',
+        smooth: true,
+        lineStyle: {
+          width: 2,
+          color: '#00ff00',
+        },
+        symbol: 'circle',
+        symbolSize: 4,
+        itemStyle: {
+          color: params => params.data.itemStyle.color,
+        },
+        areaStyle: {
+          color: 'rgba(0,255,0,0.1)',
+        },
+      }],
+    });
       } catch (err) {
         setError('Failed to load data.');
       } finally {

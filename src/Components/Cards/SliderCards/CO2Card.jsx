@@ -4,7 +4,7 @@ import { useHomeAssistant } from '../../Context/HomeAssistantContext';
 import formatLabel from '../../../misc/formatLabel';
 import HistoryChart from '../HistoryChart';
 
-const CO2Card = () => {
+const CO2Card = ({pause,resume}) => {
   const { entities } = useHomeAssistant();
   const [co2Sensors, setCo2Sensors] = useState([]);
   const [selectedSensor, setSelectedSensor] = useState(null); // State für ausgewählten Sensor (Modal)
@@ -39,16 +39,17 @@ const CO2Card = () => {
     return '#ff000';
   };
 
-  // Beim Klick den ausgewählten Sensor setzen
   const handleDataBoxClick = (sensorId) => {
+    pause(); 
     setSelectedSensor(sensorId);
   };
 
-  // Modal schließen
   const closeHistoryChart = () => {
     setSelectedSensor(null);
+    resume(); 
   };
 
+  
   return (
     <CardContainer>
       <Header>

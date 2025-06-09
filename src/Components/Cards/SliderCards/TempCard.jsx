@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import { useHomeAssistant } from '../../Context/HomeAssistantContext';
 import HistoryChart from '../HistoryChart'; // Importiere die HistoryChart-Komponente
 
-const TempCard = () => {
+const TempCard = ({pause,resume}) => {
   const { entities } = useHomeAssistant();
   const [tempSensors, setTempSensors] = useState([]);
   const [selectedSensor, setSelectedSensor] = useState(null); // State für den ausgewählten Sensor
@@ -50,14 +50,14 @@ const TempCard = () => {
     return '#7f1d1d'; // Dunkelrot für sehr hohe Werte über 40°C
   };
 
-  // Funktion zum Öffnen des Modals für einen Sensor
   const handleDataBoxClick = (sensorId) => {
+    pause(); 
     setSelectedSensor(sensorId);
   };
 
-  // Funktion zum Schließen des Modals
   const closeHistoryChart = () => {
     setSelectedSensor(null);
+    resume(); 
   };
 
   return (

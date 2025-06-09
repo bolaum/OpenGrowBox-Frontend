@@ -81,62 +81,69 @@ const HistoryChart = ({ sensorId, onClose, minThreshold = 400, maxThreshold = 12
       };
 
       // Daten mit Farb-Styles formatieren
-      const formattedData = yData.map(value => ({
-        value,
-        itemStyle: {
-          color: value < minThreshold ? colorScheme.colorBelowMin : value > maxThreshold ? colorScheme.colorAboveMax : colorScheme.colorWithinRange,
-        },
-      }));
+        const formattedData = yData.map(value => ({
+          value,
+          itemStyle: { color: value < minThreshold ? 'red' : value > maxThreshold ? 'blue' : 'green' },
+        }));
 
-      setChartOptions({
-        tooltip: {
-          trigger: 'axis',
-          backgroundColor: '#fff',
-          borderColor: '#ddd',
-          borderWidth: 1,
-          textStyle: { color: '#333' },
-          axisPointer: { type: 'line' },
+    setChartOptions({
+      tooltip: {
+        trigger: 'axis',
+        backgroundColor: '#1f1f1f',
+        borderColor: '#333',
+        borderWidth: 1,
+        textStyle: { color: '#fff' },
+        axisPointer: { type: 'cross' },
+        formatter: params => {
+          const point = params[0];
+          const time = new Date(point.axisValue).toLocaleString('de-DE', {
+            day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'
+          });
+          return `
+            <div style="color:white">
+              <strong>${time}</strong><br/>
+              ● <span style="color:lime">${point.data.value}</span>
+            </div>
+          `;
+        }
+      },
+      grid: { left: '5%', right: '5%', bottom: '10%', containLabel: true },
+      xAxis: {
+        type: 'category',
+        data: xData,
+        boundaryGap: false,
+        axisLine: { lineStyle: { color: '#666' } },
+        axisLabel: {
+          color: '#aaa',
+          formatter: value =>
+            new Date(value).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         },
-        grid: {
-          left: '5%',
-          right: '5%',
-          bottom: '10%',
-          containLabel: true,
+      },
+      yAxis: {
+        type: 'value',
+        axisLine: { lineStyle: { color: '#666' } },
+        splitLine: { lineStyle: { color: 'rgba(255,255,255,0.1)' } },
+        axisLabel: { color: '#aaa' },
+      },
+      series: [{
+        data: formattedData,
+        type: 'line',
+        smooth: true,
+        lineStyle: {
+          width: 2,
+          color: '#00ff00',
         },
-        xAxis: {
-          type: 'category',
-          data: xData,
-          boundaryGap: false,
-          axisLine: { lineStyle: { color: '#aaa' } },
-          axisLabel: {
-            color: '#666',
-            formatter: value => new Date(value).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          },
+        symbol: 'circle',
+        symbolSize: 4,
+        itemStyle: {
+          color: params => params.data.itemStyle.color,
         },
-        yAxis: {
-          type: 'value',
-          axisLine: { lineStyle: { color: '#aaa' } },
-          axisLabel: { color: '#666' },
-          splitLine: { lineStyle: { color: '#eee' } },
+        areaStyle: {
+          color: 'rgba(0,255,0,0.1)',
         },
-        series: [{
-          data: formattedData,
-          type: 'line',
-          smooth: true,
-          lineStyle: {
-            width: 2,
-            color: colorScheme.colorWithinRange, // Standardfarbe für die Linie
-          },
-          symbol: 'circle',
-          symbolSize: 6,
-          itemStyle: {
-            color: (params) => params.data.itemStyle.color, // Dynamische Punktfarbe
-          },
-          areaStyle: {
-            color: colorScheme.areaColor, // Farbverlauf unter der Linie
-          },
-        }],
-      });
+      }],
+    });
+
     } catch (err) {
       console.error(err);
       setError('Failed to load data.');

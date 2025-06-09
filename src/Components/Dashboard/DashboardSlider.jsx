@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect,useRef } from 'react';
 import styled from 'styled-components';
 import { LiaPlayCircle, LiaPauseCircle } from "react-icons/lia";
 import { motion } from "framer-motion";  // Importiere Framer Motion
@@ -14,41 +14,13 @@ import PHCard from '../Cards/SliderCards/PHCard';
 import VPDCard from '../Cards/SliderCards/VPDCard'
 import DutyCycleCard from '../Cards/SliderCards/DutyCycleCard'
 import LightIntensity from '../Cards/SliderCards/LightIntensity'
-
+import { SliderContext } from '../../misc/SliderContext'
 
 const DashboardSlider = () => {
-  const slides = [
-    <SlideContent key="slide1">
-      <CO2Card/>
-    </SlideContent>,
-    <SlideContent key="slide2">
-        <VPDCard/>
-      </SlideContent>,
-    <SlideContent key="slide3">
-      <TempCard/>
-    </SlideContent>,
-    <SlideContent key="slide4">
-      <HumCard/>
-    </SlideContent>,
-    <SlideContent key="slide5">
-      <DewCard/>
-    </SlideContent>,
-    <SlideContent key="slide6">
-      <ECCard/>
-    </SlideContent>,
-    <SlideContent key="slide7">
-      <PHCard/>
-    </SlideContent>,
-    <SlideContent key="slide7">
-      <DutyCycleCard/>
-    </SlideContent>,
-    <SlideContent key="slide8">
-      <LightIntensity/>
-    </SlideContent>,
-  ];
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
+  const intervalRef = useRef(null);
 
   const handleNext = () => {
     setCurrentIndex((prevIndex) => (prevIndex + 1) % slides.length);
@@ -57,6 +29,7 @@ const DashboardSlider = () => {
   const handlePrev = () => {
     setCurrentIndex((prevIndex) => (prevIndex - 1 + slides.length) % slides.length);
   };
+
 
   useEffect(() => {
     let interval = null;
@@ -72,21 +45,67 @@ const DashboardSlider = () => {
     };
   }, [isPlaying]);
 
-  const handlePlay = () => {
-    setIsPlaying(true);
-  };
 
-  const handlePause = () => {
+ useEffect(() => {
+    if (isPlaying && !intervalRef.current) {
+      intervalRef.current = setInterval(handleNext, 20000);
+    }
+    return () => clearInterval(intervalRef.current);
+  }, [isPlaying]);
+
+
+  const pause = () => {
+    clearInterval(intervalRef.current);
+    intervalRef.current = null;
     setIsPlaying(false);
   };
 
+  const resume = () => {
+    if (!intervalRef.current) {
+      intervalRef.current = setInterval(handleNext, 20000);
+    }
+    setIsPlaying(true);
+  };
+
+
+  const slides = [
+    <SlideContent key="slide1">
+      <PHCard pause={pause} resume={resume}/>
+    </SlideContent>,
+    <SlideContent key="slide2">
+      <CO2Card pause={pause} resume={resume}/>
+    </SlideContent>,
+    <SlideContent key="slide3">
+        <VPDCard pause={pause} resume={resume}/>
+      </SlideContent>,
+    <SlideContent key="slide4">
+      <TempCard pause={pause} resume={resume}/>
+    </SlideContent>,
+    <SlideContent key="slide5">
+      <HumCard pause={pause} resume={resume}/>
+    </SlideContent>,
+    <SlideContent key="slide6">
+      <DewCard pause={pause} resume={resume}/>
+    </SlideContent>,
+    <SlideContent key="slide7">
+      <ECCard pause={pause} resume={resume}/>
+    </SlideContent>,
+    <SlideContent key="slide8">
+      <DutyCycleCard pause={pause} resume={resume}/>
+    </SlideContent>,
+    <SlideContent key="slide9">
+      <LightIntensity pause={pause} resume={resume}/>
+    </SlideContent>,
+  ];
+
   return (
+  <SliderContext.Provider value={{ pause, resume }}>
     <SliderContainer>
       <SliderMenu>
-        <IconWrapper $active={isPlaying} onClick={handlePlay}>
+        <IconWrapper $active={isPlaying} onClick={resume}>
           <LiaPlayCircle />
         </IconWrapper>
-        <IconWrapper $active={!isPlaying} onClick={handlePause}>
+        <IconWrapper $active={!isPlaying} onClick={pause}>
           <LiaPauseCircle />
         </IconWrapper>
       </SliderMenu>
@@ -97,6 +116,7 @@ const DashboardSlider = () => {
       </ArrowContainer>
 
       {/* Framer Motion Slide Animation */}
+
       <SlideWrapper
         as={motion.div}
         key={currentIndex}  // Damit die Animation bei Indexwechsel erneut ausgeführt wird
@@ -108,6 +128,7 @@ const DashboardSlider = () => {
         {slides[currentIndex]}
       </SlideWrapper>
     </SliderContainer>
+  </SliderContext.Provider>
   );
 };
 

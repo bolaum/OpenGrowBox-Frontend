@@ -4,7 +4,7 @@ import { useHomeAssistant } from '../../Context/HomeAssistantContext';
 import formatLabel from '../../../misc/formatLabel';
 import HistoryChart from '../HistoryChart';
 
-const ECCard = () => {
+const ECCard = ({pause,resume}) => {
   const { entities, connection } = useHomeAssistant();
   const [ecSensors, setEcSensors] = useState([]);
   const [selectedSensor, setSelectedSensor] = useState(null); // State für ausgewählten Sensor (Modal)
@@ -54,19 +54,19 @@ const ECCard = () => {
     return '#ef4444'; // Extrem hohe EC-Werte
   };
 
-  // Funktion, um den ausgewählten Sensor zu setzen
   const handleDataBoxClick = (sensorId) => {
+    pause(); 
     setSelectedSensor(sensorId);
   };
 
-  // Funktion, um das Modal zu schließen
   const closeHistoryChart = () => {
     setSelectedSensor(null);
+    resume(); 
   };
 
   return (
     <CardContainer>
-      <Header><h4>EC</h4></Header>
+      <Header><h4>SOIL EC</h4></Header>
       <Content>
         {ecSensors.map((sensor) => (
           <DataBox key={sensor.id} onClick={() => handleDataBoxClick(sensor.id)}>

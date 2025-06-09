@@ -4,7 +4,7 @@ import { useHomeAssistant } from '../../Context/HomeAssistantContext';
 import formatLabel from '../../../misc/formatLabel';
 import HistoryChart from '../HistoryChart';
 
-const PHCard = () => {
+const PHCard = ({pause,resume}) => {
   const { entities } = useHomeAssistant();
   const [phSensors, setPHSensors] = useState([]);
   const [selectedSensor, setSelectedSensor] = useState(null); // State für den ausgewählten Sensor
@@ -90,14 +90,14 @@ const PHCard = () => {
     return value % 1 === 0 ? value.toFixed(0) : value.toFixed(2);
   };
 
-  // Funktion zum Öffnen des Modals für einen Sensor
   const handleDataBoxClick = (sensorId) => {
+    pause(); 
     setSelectedSensor(sensorId);
   };
 
-  // Funktion zum Schließen des Modals
   const closeHistoryChart = () => {
     setSelectedSensor(null);
+    resume(); 
   };
 
   return (

@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import { useHomeAssistant } from '../../Context/HomeAssistantContext';
 import HistoryChart from '../HistoryChart';
 
-const DutyCycleCard = () => {
+const DutyCycleCard = ({pause,resume}) => {
   const { entities } = useHomeAssistant();
   const [dewSensors, setDewSensors] = useState([]);
   const [selectedSensor, setSelectedSensor] = useState(null);
@@ -41,11 +41,13 @@ const DutyCycleCard = () => {
   }, [entities]);
 
   const handleDataBoxClick = (sensorId) => {
+    pause(); 
     setSelectedSensor(sensorId);
   };
 
   const closeHistoryChart = () => {
     setSelectedSensor(null);
+    resume(); 
   };
 
   const getColorForValue = (value) => {

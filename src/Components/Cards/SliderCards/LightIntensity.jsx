@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import { useHomeAssistant } from '../../Context/HomeAssistantContext';
 import HistoryChart from '../HistoryChart';
 
-const LightIntensity = () => {
+const LightIntensity = ({pause,resume}) => {
   const { entities } = useHomeAssistant();
   const [lightIntesity, setLightIntensity] = useState([]);
   const [selectedSensor, setSelectedSensor] = useState(null);
@@ -52,11 +52,13 @@ const LightIntensity = () => {
   }, [entities]);
 
   const handleDataBoxClick = (sensorId) => {
+    pause(); 
     setSelectedSensor(sensorId);
   };
 
   const closeHistoryChart = () => {
     setSelectedSensor(null);
+    resume(); 
   };
 
   const getColorForValue = (value) => {
