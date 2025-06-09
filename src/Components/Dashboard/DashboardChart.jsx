@@ -8,7 +8,9 @@ import { FaLeaf } from 'react-icons/fa';
 const SensorChart = ({ sensorId, minThreshold = 0, maxThreshold = 2000, title = 'Sensor', unit = '' }) => {
   const getDefaultDate = (offset = 0) => {
     const date = new Date(Date.now() + offset);
-    const localISOTime = date.toISOString();
+    const localISOTime = new Date(date.getTime() - date.getTimezoneOffset() * 60000)
+      .toISOString()
+      .slice(0, 16);
     return localISOTime;
   };
 
@@ -72,9 +74,8 @@ const SensorChart = ({ sensorId, minThreshold = 0, maxThreshold = 2000, title = 
         
         const data = await response.json();
         const sensorData = data?.[0] || [];
-        const xData = sensorData.map(item =>
-          new Date(item.last_changed).toLocaleString([], { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' })
-        );
+        const xData = sensorData.map(item => new Date(item.last_changed).toISOString());
+
         const yData = sensorData.map(item => parseFloat(item.state));
         
         const formattedData = yData.map(value => ({
