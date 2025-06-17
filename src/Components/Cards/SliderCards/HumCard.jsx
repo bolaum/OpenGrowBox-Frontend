@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import { useHomeAssistant } from '../../Context/HomeAssistantContext';
 import HistoryChart from '../HistoryChart';
 
-const HumCard = ({pause,resume}) => {
+const HumCard = ({pause,resume,isPlaying}) => {
   const { entities, connection } = useHomeAssistant();
   const [humSensors, setHumSensors] = useState([]);
   const [selectedSensor, setSelectedSensor] = useState(null); // State für den ausgewählten Sensor
@@ -69,7 +69,9 @@ const HumCard = ({pause,resume}) => {
 
   const closeHistoryChart = () => {
     setSelectedSensor(null);
-    resume(); 
+    if(isPlaying){
+      resume(); 
+    }
   };
 
   return (

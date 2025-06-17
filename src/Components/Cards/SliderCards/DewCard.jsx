@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import { useHomeAssistant } from '../../Context/HomeAssistantContext';
 import HistoryChart from '../HistoryChart';
 
-const DewCard = ({pause,resume}) => {
+const DewCard = ({pause,resume,isPlaying}) => {
   const { entities } = useHomeAssistant();
   const [dewSensors, setDewSensors] = useState([]);
   const [selectedSensor, setSelectedSensor] = useState(null);
@@ -47,7 +47,9 @@ const DewCard = ({pause,resume}) => {
 
   const closeHistoryChart = () => {
     setSelectedSensor(null);
-    resume(); 
+    if(isPlaying){
+      resume(); 
+    }
   };
 
   const getColorForValue = (value) => {

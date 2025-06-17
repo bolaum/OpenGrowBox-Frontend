@@ -4,7 +4,7 @@ import { useHomeAssistant } from '../../Context/HomeAssistantContext';
 import formatLabel from '../../../misc/formatLabel';
 import HistoryChart from '../HistoryChart';
 
-const CO2Card = ({pause,resume}) => {
+const CO2Card = ({pause,resume,isPlaying}) => {
   const { entities } = useHomeAssistant();
   const [co2Sensors, setCo2Sensors] = useState([]);
   const [selectedSensor, setSelectedSensor] = useState(null); // State für ausgewählten Sensor (Modal)
@@ -46,7 +46,9 @@ const CO2Card = ({pause,resume}) => {
 
   const closeHistoryChart = () => {
     setSelectedSensor(null);
-    resume(); 
+    if(isPlaying){
+      resume(); 
+    }
   };
 
   

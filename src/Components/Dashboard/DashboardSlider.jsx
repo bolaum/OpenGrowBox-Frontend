@@ -70,31 +70,31 @@ const DashboardSlider = () => {
 
   const slides = [
     <SlideContent key="slide1">
-      <PHCard pause={pause} resume={resume}/>
+      <PHCard pause={pause} resume={resume} isPlaying={isPlaying}/>
     </SlideContent>,
     <SlideContent key="slide2">
-      <CO2Card pause={pause} resume={resume}/>
+      <CO2Card pause={pause} resume={resume} isPlaying={isPlaying}/>
     </SlideContent>,
     <SlideContent key="slide3">
-        <VPDCard pause={pause} resume={resume}/>
+        <VPDCard pause={pause} resume={resume} isPlaying={isPlaying}/>
       </SlideContent>,
     <SlideContent key="slide4">
-      <TempCard pause={pause} resume={resume}/>
+      <TempCard pause={pause} resume={resume} isPlaying={isPlaying}/>
     </SlideContent>,
     <SlideContent key="slide5">
-      <HumCard pause={pause} resume={resume}/>
+      <HumCard pause={pause} resume={resume} isPlaying={isPlaying}/>
     </SlideContent>,
     <SlideContent key="slide6">
-      <DewCard pause={pause} resume={resume}/>
+      <DewCard pause={pause} resume={resume} isPlaying={isPlaying}/>
     </SlideContent>,
     <SlideContent key="slide7">
-      <ECCard pause={pause} resume={resume}/>
+      <ECCard pause={pause} resume={resume} isPlaying={isPlaying}/>
     </SlideContent>,
     <SlideContent key="slide8">
-      <DutyCycleCard pause={pause} resume={resume}/>
+      <DutyCycleCard pause={pause} resume={resume} isPlaying={isPlaying}/>
     </SlideContent>,
     <SlideContent key="slide9">
-      <LightIntensity pause={pause} resume={resume}/>
+      <LightIntensity pause={pause} resume={resume} isPlaying={isPlaying}/>
     </SlideContent>,
   ];
 

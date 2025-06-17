@@ -4,7 +4,7 @@ import { useHomeAssistant } from '../../Context/HomeAssistantContext';
 import formatLabel from '../../../misc/formatLabel';
 import HistoryChart from '../HistoryChart';
 
-const PHCard = ({pause,resume}) => {
+const PHCard = ({pause,resume,isPlaying}) => {
   const { entities } = useHomeAssistant();
   const [phSensors, setPHSensors] = useState([]);
   const [selectedSensor, setSelectedSensor] = useState(null); // State für den ausgewählten Sensor
@@ -97,7 +97,9 @@ const PHCard = ({pause,resume}) => {
 
   const closeHistoryChart = () => {
     setSelectedSensor(null);
-    resume(); 
+    if(isPlaying){
+      resume(); 
+    }
   };
 
   return (

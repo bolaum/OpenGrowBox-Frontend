@@ -50,78 +50,69 @@ const ControllCollection = ({ option }) => {
   const [currentControl, setCurrentControl] = useState('Home');
 
   const entityTooltips = {
-    [`ogb_plantstage_${currentRoom.toLowerCase()}`]: 'Change to your current plant stage. Lights will be dimmed to new min/max if dimmable.',
-    [`ogb_tentmode_${currentRoom.toLowerCase()}`]: 'Setting This starts the Controll based on mode check wiki what the modes does',
-    [`ogb_holdvpdnight_${currentRoom.toLowerCase()}`]: 'Enable this if you want to controll the VPD on NightTime If not all devices will get a turn off on nighttime',
-    [`ogb_dryingmodes_${currentRoom.toLowerCase()}`]: 'Select your Drying Technic make sure your Tent-Mode is set to Drying',
-    [`ogb_workmode_${currentRoom.toLowerCase()}`]: 'Change to your current plant stage. Lights will be dimmed to new min/max if dimmable.',
+    [`ogb_plantstage_${currentRoom.toLowerCase()}`]: 'Set the current plant stage. Lights will adjust to the new min/max if dimmable.',
+    [`ogb_tentmode_${currentRoom.toLowerCase()}`]: 'Select a grow mode to activate automated control. Check the wiki for detailed mode descriptions.',
+    [`ogb_holdvpdnight_${currentRoom.toLowerCase()}`]: 'Enable to control VPD during nighttime. If disabled, all devices will turn off at night.',
+    [`ogb_dryingmodes_${currentRoom.toLowerCase()}`]: 'Select your preferred drying technique. Make sure Tent Mode is set to "Drying".',
+    [`ogb_workmode_${currentRoom.toLowerCase()}`]: 'Set the current plant stage. Lights will adjust to the new min/max if dimmable.',
 
+    [`ogb_leaftemp_offset_${currentRoom.toLowerCase()}`]: 'Override the detected leaf temperature by automation if needed.',
+    [`ogb_vpdtarget_${currentRoom.toLowerCase()}`]: 'Set your target VPD. Works only in "Targeted VPD" Tent Mode.',
+    [`ogb_vpdtolerance_${currentRoom.toLowerCase()}`]: 'Adjust tolerance between Targeted VPD and Perfect VPD.',
 
-    [`ogb_leaftemp_offset_${currentRoom.toLowerCase()}`]: 'This is your current LeafTemp if you need to connect a own overrite it with some automation with your value',
-    [`ogb_vpdtarget_${currentRoom.toLowerCase()}`]: 'Set This to your TargetVPD - Works only with TentMode "Targeted VPD',
-    [`ogb_vpdtolerance_${currentRoom.toLowerCase()}`]: 'Use this to seetting the tollerance betwen your Targeted VPD and your Perfection VPD',
+    [`ogb_lightcontrol_${currentRoom.toLowerCase()}`]: 'Enable to control lights via OpenGrowBox.',
+    [`ogb_vpdlightcontrol_${currentRoom.toLowerCase()}`]: 'If enabled, light intensity will shift between min/max to help regulate VPD.',
 
-    [`ogb_lightcontrol_${currentRoom.toLowerCase()}`]: 'Enable this if you want to controll the Lights over OGB',
-    [`ogb_vpdlightcontrol_${currentRoom.toLowerCase()}`]: 'If this is Enabled your light will swtich between min/max from Stage to try better the VPD',
+    [`ogb_lightontime_${currentRoom.toLowerCase()}`]: 'Set the time to turn on the lights (e.g. 20:00:00). Requires Light Control enabled.',
+    [`ogb_lightofftime_${currentRoom.toLowerCase()}`]: 'Set the time to turn off the lights (e.g. 08:00:00). Requires Light Control enabled.',
 
-    [`ogb_lightontime_${currentRoom.toLowerCase()}`]: 'Set this to 20:00:00 or 20:00 depents on Browser to Start Light on 8PM, Works Only with Light Control Enabled',
-    [`ogb_lightofftime_${currentRoom.toLowerCase()}`]: 'Set this to 08:00:00 or 08:00 depents on Browser to Stop Light on 8PM, Works Only with Light Control Enabled',
+    [`ogb_sunrisetime_${currentRoom.toLowerCase()}`]: 'Set sunrise phase duration (e.g. 00:30:00). Requires dimmable lights and Light Control.',
+    [`ogb_sunsettime_${currentRoom.toLowerCase()}`]: 'Set sunset phase duration (e.g. 00:30:00). Requires dimmable lights and Light Control.',
 
-    [`ogb_sunrisetime_${currentRoom.toLowerCase()}`]: 'Set this to 00:30:00 or 30:00 depents on Browser to Start a SunRise Phase,Need Dimmable Lights "light.", Works Only with Light Control Enabled',
-    [`ogb_sunsettime_${currentRoom.toLowerCase()}`]: 'Set this to 00:30:00 or 30:00 depents on Browser to Start a SunSet Phase,Need Dimmable Lights "light.", Works Only with Light Control Enabled',
+    [`ogb_light_minmax_${currentRoom.toLowerCase()}`]: 'Enable to use custom min/max light voltage. Set values before enabling.',
+    [`ogb_light_volt_min_${currentRoom.toLowerCase()}`]: 'Set the minimum voltage. Requires Light Min/Max enabled.',
+    [`ogb_light_volt_max_${currentRoom.toLowerCase()}`]: 'Set the maximum voltage. Requires Light Min/Max enabled.',
 
-    [`ogb_light_minmax_${currentRoom.toLowerCase()}`]: 'Enable to set your Own Min/Max Values Set Them First then Enable it',
-    [`ogb_light_volt_min_${currentRoom.toLowerCase()}`]: 'Set your Min Voltage, "Light Min Max needs To be Enabled',
-    [`ogb_light_volt_max_${currentRoom.toLowerCase()}`]: 'Set your Max Voltage, "Light Min Max needs To be Enabled',
+    [`ogb_co2_control_${currentRoom.toLowerCase()}`]: 'Enable CO₂-based environmental control.',
+    [`ogb_co2minvalue_${currentRoom.toLowerCase()}`]: 'Set minimum CO₂ value.',
+    [`ogb_co2maxvalue_${currentRoom.toLowerCase()}`]: 'Set maximum CO₂ value.',
+    [`ogb_co2targetvalue_${currentRoom.toLowerCase()}`]: 'Set target CO₂ value.',
 
+    [`ogb_ownweights_${currentRoom.toLowerCase()}`]: 'Enable to define custom temperature/humidity weights (e.g. 1:1.25 in late flower).',
+    [`ogb_minmax_control_${currentRoom.toLowerCase()}`]: 'Enable to set custom min/max values for controllers.',
+    [`ogb_exhaust_minmax_${currentRoom.toLowerCase()}`]: 'Enable to set custom exhaust min/max values.',
+    [`ogb_ventilation_minmax_${currentRoom.toLowerCase()}`]: 'Enable to set custom ventilation min/max values.',
 
-    [`ogb_co2_control_${currentRoom.toLowerCase()}`]: 'Enable to Activate Diffrent Control Based On CO2',
-    [`ogb_co2minvalue_${currentRoom.toLowerCase()}`]: 'Set your CO2 Min Value',
-    [`ogb_co2maxvalue_${currentRoom.toLowerCase()}`]: 'Set your CO2 Max Value',
-    [`ogb_co2targetvalue_${currentRoom.toLowerCase()}`]: 'Set your CO2 Target Value',
+    [`ogb_temperatureweight_${currentRoom.toLowerCase()}`]: 'Set custom temperature weight. Requires custom weights enabled.',
+    [`ogb_humidityweight_${currentRoom.toLowerCase()}`]: 'Set custom humidity weight. Requires custom weights enabled.',
+    [`ogb_mintemp_${currentRoom.toLowerCase()}`]: 'Set custom minimum temperature. Requires Min/Max Control enabled.',
+    [`ogb_maxtemp_${currentRoom.toLowerCase()}`]: 'Set custom maximum temperature. Requires Min/Max Control enabled.',
+    [`ogb_minhum_${currentRoom.toLowerCase()}`]: 'Set custom minimum humidity. Requires Min/Max Control enabled.',
+    [`ogb_maxhum_${currentRoom.toLowerCase()}`]: 'Set custom maximum humidity. Requires Min/Max Control enabled.',
 
+    [`ogb_exhaust_duty_max_${currentRoom.toLowerCase()}`]: 'Set custom max duty cycle for exhaust. Requires Exhaust Min/Max enabled.',
+    [`ogb_exhaust_duty_min_${currentRoom.toLowerCase()}`]: 'Set custom min duty cycle for exhaust. Requires Exhaust Min/Max enabled.',
+    [`ogb_ventilation_duty_max_${currentRoom.toLowerCase()}`]: 'Set custom max duty cycle for ventilation. Requires Ventilation Min/Max enabled.',
+    [`ogb_ventilation_duty_min_${currentRoom.toLowerCase()}`]: 'Set custom min duty cycle for ventilation. Requires Ventilation Min/Max enabled.',
 
-    [`ogb_ownweights_${currentRoom.toLowerCase()}`]: 'Enable This to set your own Weights based on Temp:Hum Default 1:1 on Mid and Late flower 1:1,25',
-    [`ogb_minmax_control_${currentRoom.toLowerCase()}`]: 'If Enabled you can use your own Min/Max values for the controller',
-    [`ogb_exhaust_minmax_${currentRoom.toLowerCase()}`]: 'Enable to set your Own Min/Max Values Set Them First then Enable it',
-    [`ogb_ventilation_minmax_${currentRoom.toLowerCase()}`]: 'Enable to set your Own Min/Max Values Set Them First then Enable it',
+    [`ogb_hydro_mode_${currentRoom.toLowerCase()}`]: 'Enable for plant watering or hydro systems. Watering defaults to always cycling.',
+    [`ogb_hydro_cycle_${currentRoom.toLowerCase()}`]: 'Enable to use interval and duration for water cycling.',
+    [`ogb_hydropumpduration_${currentRoom.toLowerCase()}`]: 'Set how long the pump stays active. Requires Hydro Mode and cycling enabled.',
+    [`ogb_hydropumpintervall_${currentRoom.toLowerCase()}`]: 'Set pump pause interval. Requires Hydro Mode and cycling enabled.',
 
-
-    [`ogb_temperatureweight_${currentRoom.toLowerCase()}`]: 'Set Your Own Temp Weight, OWn weights needs to be Enabled',
-    [`ogb_humidityweight_${currentRoom.toLowerCase()}`]: 'Set Your Own Humdidity Weight, OWn weights needs to be Enabled',
-    [`ogb_mintemp_${currentRoom.toLowerCase()}`]: 'Set to Your own Min Temp, Min Max Control need to be Enabled',
-    [`ogb_maxtemp_${currentRoom.toLowerCase()}`]: 'Set to Your own Max Temp, Min Max Control need to be Enabled',
-    [`ogb_minhum_${currentRoom.toLowerCase()}`]: 'Set to Your own Min Humidity, Min Max Control need to be Enabled',
-    [`ogb_maxhum_${currentRoom.toLowerCase()}`]: 'Set to Your own Max Humidity, Min Max Control need to be Enabled',
-
-    [`ogb_exhaust_duty_max_${currentRoom.toLowerCase()}`]: 'Set to Your own Max DutyCycle,"Exhaust Min Max" need to be Enabled',
-    [`ogb_exhaust_duty_min_${currentRoom.toLowerCase()}`]: 'Set to Your own Min DutyCycle, "Exhaust Min Max" need to be Enabled',
-    [`ogb_ventilation_duty_max_${currentRoom.toLowerCase()}`]: 'Set to Your own Max DutyCycle,"Ventilation Min Max" need to be Enabled',
-    [`ogb_ventilation_duty_min_${currentRoom.toLowerCase()}`]: 'Set to Your own Min DutyCycle, "Ventilation Min Max" need to be Enabled',
-
-    [`ogb_hydro_mode_${currentRoom.toLowerCase()}`]: 'Activate this For Plant Watering or Hydro Setups, Plant-Watering is Default Allways Cycle True',
-    [`ogb_hydro_cycle_${currentRoom.toLowerCase()}`]: 'If Enabled it will use The Duration-Time to Stay active and the Intervall to Pause until next Start',
-    [`ogb_hydropumpduration_${currentRoom.toLowerCase()}`]: 'Set your Duration Time The Pump Stays Active, Works Only with Plant-Watering or Hydro & Cycle True',
-    [`ogb_hydropumpintervall_${currentRoom.toLowerCase()}`]: 'Set your Intervall Time The Pump Waits for Next Action, Works Only with Plant-Watering or Hydro & Cycle True',
-
-
-    [`ogb_owndevicesets_${currentRoom.toLowerCase()}`]: 'If enabled you can use The List bellow to map a Entitiy to an Device Type, Default The Naming Convention take action until you Enable "Own Device Sets"',
-    [`ogb_light_device_select_${currentRoom.toLowerCase()}`]: 'Select your Entiy as Light, Works only with "Own Devices Sets Enabled',    
-    [`ogb_exhaust_device_select_${currentRoom.toLowerCase()}`]: 'Select your Entiy as Exhaust, Works only with "Own Devices Sets Enabled',
-    [`ogb_inhaust_device_select_${currentRoom.toLowerCase()}`]: 'Select your Entiy as Inhaust, Works only with "Own Devices Sets Enabled',
-    [`ogb_vents_device_select_${currentRoom.toLowerCase()}`]: 'Select your Entiy as Ventilation, Works only with "Own Devices Sets Enabled',    
-    [`ogb_humidifier_device_select_${currentRoom.toLowerCase()}`]: 'Select your Entiy as Humidifier, Works only with "Own Devices Sets Enabled',
-    [`ogb_dehumidifier_device_select_${currentRoom.toLowerCase()}`]: 'Select your Entiy as Dehumidifier, Works only with "Own Devices Sets Enabled',
-    [`ogb_heater_device_select_${currentRoom.toLowerCase()}`]: 'Select your Entiy as Heater, Works only with "Own Devices Sets Enabled',
-    [`ogb_cooler_device_select_${currentRoom.toLowerCase()}`]: 'Select your Entiy as Cooler, Works only with "Own Devices Sets Enabled',
-    [`ogb_climate_device_select_${currentRoom.toLowerCase()}`]: 'Select your Entiy as Climate, Works only with "Own Devices Sets Enabled "NOT WOKING RIGHT NOW',
-    [`ogb_waterpump_device_select_${currentRoom.toLowerCase()}`]: 'Select your Entiy as Water Pump, Works only with "Own Devices Sets Enabled',
-
-
-
-
-
+    [`ogb_owndevicesets_${currentRoom.toLowerCase()}`]: 'Enable to manually map entities to device types. Default uses naming convention.',
+    [`ogb_light_device_select_${currentRoom.toLowerCase()}`]: 'Select a light entity. Requires Own Device Sets enabled.',
+    [`ogb_exhaust_device_select_${currentRoom.toLowerCase()}`]: 'Select an exhaust entity. Requires Own Device Sets enabled.',
+    [`ogb_inhaust_device_select_${currentRoom.toLowerCase()}`]: 'Select an inhaust entity. Requires Own Device Sets enabled.',
+    [`ogb_vents_device_select_${currentRoom.toLowerCase()}`]: 'Select a ventilation entity. Requires Own Device Sets enabled.',
+    [`ogb_humidifier_device_select_${currentRoom.toLowerCase()}`]: 'Select a humidifier entity. Requires Own Device Sets enabled.',
+    [`ogb_dehumidifier_device_select_${currentRoom.toLowerCase()}`]: 'Select a dehumidifier entity. Requires Own Device Sets enabled.',
+    [`ogb_heater_device_select_${currentRoom.toLowerCase()}`]: 'Select a heater entity. Requires Own Device Sets enabled.',
+    [`ogb_cooler_device_select_${currentRoom.toLowerCase()}`]: 'Select a cooler entity. Requires Own Device Sets enabled.',
+    [`ogb_climate_device_select_${currentRoom.toLowerCase()}`]: 'Select a climate device. Requires Own Device Sets enabled. (Currently not working)',
+    [`ogb_waterpump_device_select_${currentRoom.toLowerCase()}`]: 'Select a water pump entity. Requires Own Device Sets enabled.',
   };
+
 
   const group = groupMappings[option];
   const includedKeywords = group ? group.includeKeywords : [];

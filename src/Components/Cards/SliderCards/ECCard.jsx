@@ -4,7 +4,7 @@ import { useHomeAssistant } from '../../Context/HomeAssistantContext';
 import formatLabel from '../../../misc/formatLabel';
 import HistoryChart from '../HistoryChart';
 
-const ECCard = ({pause,resume}) => {
+const ECCard = ({pause,resume,isPlaying}) => {
   const { entities, connection } = useHomeAssistant();
   const [ecSensors, setEcSensors] = useState([]);
   const [selectedSensor, setSelectedSensor] = useState(null); // State für ausgewählten Sensor (Modal)
@@ -61,7 +61,9 @@ const ECCard = ({pause,resume}) => {
 
   const closeHistoryChart = () => {
     setSelectedSensor(null);
-    resume(); 
+    if(isPlaying){
+      resume(); 
+    }
   };
 
   return (
