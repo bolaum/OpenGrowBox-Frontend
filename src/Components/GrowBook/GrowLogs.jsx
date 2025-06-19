@@ -9,14 +9,17 @@ const LogItem = ({ room, date, info }) => {
   // Determine log type for styling
   const getLogType = (data) => {
     const msg = data.message?.toLowerCase() || '';
+    const action = data.Action?.toLowerCase() || '';
+    
     if (msg.includes('vpd')) return 'vpd';
     if (msg.includes('humidity')) return 'humidity';
     if (msg.includes('temperature')) return 'temperature';
     if (data.VPD !== undefined) return 'sensor';
     if (data.action) return 'action';
+    // Check for pump/device actions
+    if (data.Device || data.Action || data.Cycle !== undefined) return 'device';
     return 'default';
   };
-
 
   const logType = getLogType(parsedInfo);
 
@@ -47,6 +50,52 @@ const LogItem = ({ room, date, info }) => {
     return null;
   };
 
+  // Format device/pump actions
+  const formatDeviceAction = (data) => {
+    if (data.Device || data.Action) {
+      const device = data.Device || 'Device';
+      const action = data.Action || 'unknown';
+      const cycle = data.Cycle;
+      const message = data.Message || '';
+      
+      return (
+        <DeviceActionContainer>
+          <DeviceHeader>
+            <DeviceIcon device={device}>
+              {getDeviceIcon(device)}
+            </DeviceIcon>
+            <DeviceInfo>
+              <DeviceName>{device}</DeviceName>
+              {message && <DeviceMessage>{message}</DeviceMessage>}
+            </DeviceInfo>
+          </DeviceHeader>
+          <DeviceDetails>
+            <ActionBadge action={action}>{action}</ActionBadge>
+            {cycle !== undefined && (
+              <CycleIndicator cycle={cycle}>
+                <CycleLabel>Cycle</CycleLabel>
+                <CycleValue>{cycle ? 'ON' : 'OFF'}</CycleValue>
+              </CycleIndicator>
+            )}
+          </DeviceDetails>
+        </DeviceActionContainer>
+      );
+    }
+    return null;
+  };
+
+  // Get device icon based on device type
+  const getDeviceIcon = (device) => {
+    const deviceLower = device.toLowerCase();
+    if (deviceLower.includes('pump') || deviceLower.includes('water')) return '💧';
+    if (deviceLower.includes('fan') || deviceLower.includes('ventil')) return '🌪️';
+    if (deviceLower.includes('exhaust') || deviceLower.includes('ventil')) return '🌪️';
+    if (deviceLower.includes('light') || deviceLower.includes('led')) return '💡';
+    if (deviceLower.includes('heat') || deviceLower.includes('warm')) return '🔥';
+    if (deviceLower.includes('cool') || deviceLower.includes('ac')) return '❄️';
+    return '⚙️';
+  };
+
   // Format action data - handle both single actions and arrays of actions
   const formatActionData = (data) => {
     // Check if data is an array (multiple actions)
@@ -64,6 +113,9 @@ const LogItem = ({ room, date, info }) => {
                 <ActionItem key={index}>
                   <ActionBadge action={action.action}>{action.action}</ActionBadge>
                   <ActionCapability>{action.capability}</ActionCapability>
+                   <DeviceIcon device={action.capability}>
+                    {getDeviceIcon(action.capability)}
+                  </DeviceIcon>
                 </ActionItem>
               ))}
             </ActionGrid>
@@ -109,10 +161,10 @@ const LogItem = ({ room, date, info }) => {
 
   const sensorData = formatSensorData(parsedInfo);
   const actionData = formatActionData(parsedInfo);
+  const deviceData = formatDeviceAction(parsedInfo);
   const deviationData = formatDeviationData(parsedInfo);
 
   return (
-
     <LogItemContainer logType={logType}>
       <LogHeader logType={logType}>
         <RoomInfo>
@@ -124,16 +176,15 @@ const LogItem = ({ room, date, info }) => {
       <LogContent>
         {sensorData && sensorData}
         {actionData && actionData}
+        {deviceData && deviceData}
         {deviationData && deviationData}
-        {!sensorData && !actionData && !deviationData && (
+        {!sensorData && !actionData && !deviceData && !deviationData && (
           <FallbackContent>
             <pre>{JSON.stringify(parsedInfo, null, 2)}</pre>
           </FallbackContent>
         )}
       </LogContent>
     </LogItemContainer>
-
-
   );
 };
 
@@ -256,7 +307,6 @@ const GrowLogs = () => {
         )}
       </GrowLogContainer>
     </LogContainer>
-
   );
 };
 
@@ -267,7 +317,7 @@ export default GrowLogs;
 const LogContainer = styled.div`
   height: 100vh;
   width: 100%;
-  overflow: hidden; // Verhindert, dass der äußere Container scrollt
+  overflow: hidden;
 `;
 
 const GrowLogContainer = styled.div`
@@ -276,10 +326,9 @@ const GrowLogContainer = styled.div`
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  overflow-y: auto; // Aktiviert vertikales Scrollen
-  overflow-x: hidden; // Verhindert horizontales Scrollen
+  overflow-y: auto;
+  overflow-x: hidden;
   padding: 1rem;
-  #background: var(--main-bg-color);
   border-left: 1px solid rgba(255, 255, 255, 0.1);
   z-index: 1000;
   
@@ -290,8 +339,8 @@ const GrowLogContainer = styled.div`
   @media (max-width: 768px) {
     width: 100%;
     position: relative;
-    height: 100%; // Geändert von auto zu 100%
-    max-height: none; // Entfernt die max-height Begrenzung
+    height: 100%;
+    max-height: none;
   }
   
   &::-webkit-scrollbar {
@@ -320,6 +369,7 @@ const LogItemContainer = styled.div`
     switch(props.logType) {
       case 'sensor': return 'linear-gradient(135deg, rgba(34, 193, 195, 0.1) 0%, rgba(253, 187, 45, 0.1) 100%)';
       case 'action': return 'linear-gradient(135deg, rgba(255, 94, 77, 0.1) 0%, rgba(255, 154, 0, 0.1) 100%)';
+      case 'device': return 'linear-gradient(135deg, rgba(116, 75, 162, 0.1) 0%, rgba(74, 144, 226, 0.1) 100%)';
       case 'vpd': return 'linear-gradient(135deg, rgba(131, 58, 180, 0.1) 0%, rgba(253, 29, 29, 0.1) 100%)';
       case 'humidity': return 'linear-gradient(135deg, rgba(45, 134, 255, 0.1) 0%, rgba(45, 253, 159, 0.1) 100%)';
       case 'temperature': return 'linear-gradient(135deg, rgba(255, 94, 77, 0.1) 0%, rgba(255, 203, 95, 0.1) 100%)';
@@ -330,8 +380,8 @@ const LogItemContainer = styled.div`
   border-radius: 12px;
   overflow: hidden;
   transition: all 0.3s ease;
-  min-height: fit-content; // Stellt sicher, dass die Mindesthöhe dem Inhalt entspricht
-  flex-shrink: 0; // Verhindert, dass die Log-Items geschrumpft werden
+  min-height: fit-content;
+  flex-shrink: 0;
   
   &:hover {
     transform: translateY(-2px);
@@ -378,6 +428,89 @@ const LogContent = styled.div`
   padding: 1rem 1.25rem 1.25rem;
 `;
 
+// Device Action Styles
+const DeviceActionContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+`;
+
+const DeviceHeader = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+`;
+
+const DeviceIcon = styled.div`
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: ${props => {
+    const device = props.device?.toLowerCase() || '';
+    if (device.includes('pump') || device.includes('mist')) return 'linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%)';
+    if (device.includes('fan')) return 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+    if (device.includes('light')) return 'linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)';
+    return 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)';
+  }};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+`;
+
+const DeviceInfo = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+`;
+
+const DeviceName = styled.div`
+  color: var(--main-text-color);
+  font-size: 1.1rem;
+  font-weight: 600;
+  text-transform: capitalize;
+`;
+
+const DeviceMessage = styled.div`
+  color: var(--second-text-color);
+  font-size: 0.85rem;
+  opacity: 0.8;
+`;
+
+const DeviceDetails = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+`;
+
+const CycleIndicator = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+`;
+
+const CycleLabel = styled.div`
+  color: var(--second-text-color);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.25rem;
+`;
+
+const CycleValue = styled.div`
+  color: ${props => props.children === 'ON' ? '#4ecdc4' : '#ff6b6b'};
+  font-size: 0.9rem;
+  font-weight: 600;
+`;
+
+// Existing styles continue...
 const SensorGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
@@ -406,12 +539,6 @@ const SensorValue = styled.div`
   color: var(--primary-accent);
   font-size: 1.1rem;
   font-weight: 600;
-`;
-
-const ActionContainer = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 1rem;
 `;
 
 const MultiActionContainer = styled.div`
@@ -489,6 +616,10 @@ const ActionBadge = styled.div`
         return 'linear-gradient(135deg, #96c93d 0%, #02aab0 100%)';
       case 'stop':
         return 'linear-gradient(135deg, #ff8a80 0%, #ff5722 100%)';
+      case 'on':
+        return 'linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%)';
+      case 'off':
+        return 'linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%)';
       default: 
         return 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
     }
