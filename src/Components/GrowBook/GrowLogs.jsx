@@ -56,12 +56,18 @@ const LogItem = ({ room, date, info }) => {
       const device = data.Device || 'Device';
       const action = data.Action || 'unknown';
       const cycle = data.Cycle;
+      const Dimmable = data.Dimmable;
+      const voltage = data.Voltage;
+      const sunrise = data.SunRise;
+      const sunset = data.SunSet;
       const message = data.Message || '';
+      
+      const isLightDevice = device.toLowerCase().includes('light') || device.toLowerCase().includes('led');
       
       return (
         <DeviceActionContainer>
           <DeviceHeader>
-            <DeviceIcon device={device}>
+            <DeviceIcon device={device} isLight={isLightDevice}>
               {getDeviceIcon(device)}
             </DeviceIcon>
             <DeviceInfo>
@@ -69,13 +75,82 @@ const LogItem = ({ room, date, info }) => {
               {message && <DeviceMessage>{message}</DeviceMessage>}
             </DeviceInfo>
           </DeviceHeader>
+          
           <DeviceDetails>
             <ActionBadge action={action}>{action}</ActionBadge>
+            
+            {/* Power Status */}
             {cycle !== undefined && (
-              <CycleIndicator cycle={cycle}>
-                <CycleLabel>Cycle</CycleLabel>
-                <CycleValue>{cycle ? 'ON' : 'OFF'}</CycleValue>
-              </CycleIndicator>
+              <StatusBadge cycle={cycle} isLight={isLightDevice}>
+                <StatusIcon>{cycle === true ? '🟢' : '🔴'}</StatusIcon>
+                <StatusLabel>Pump Cycle</StatusLabel>
+                <StatusValue>{cycle ? 'ON' : 'OFF'}</StatusValue>
+              </StatusBadge>
+            )}
+            
+            {/* Light-specific controls */}
+            {isLightDevice && (
+              <LightControlsContainer>
+                {/* Dimming Control */}
+                {Dimmable !== undefined && (
+                  <DimmingControl>
+                    <DimmingHeader>
+                      <DimmingLabel>Dimmable</DimmingLabel>
+                      {Dimmable == true ?<DimmingIcon>🌝</DimmingIcon>:<DimmingIcon>🌚</DimmingIcon> }
+                      
+
+                    </DimmingHeader>
+                    <DimmingValue>{Dimmable}</DimmingValue>
+                    <DimmingBar>
+                      <DimmingFill percentage={Dimmable} />
+                    </DimmingBar>
+                  </DimmingControl>
+                )}
+                
+                {/* Voltage Display */}
+                {voltage !== undefined && (
+                  <VoltageDisplay>
+                    <VoltageIcon>⚡</VoltageIcon>
+                    <VoltageInfo>
+                      <VoltageLabel>Voltage</VoltageLabel>
+                      <VoltageValue>{Dimmable ? `${voltage}%` : '0%'}</VoltageValue>
+                    </VoltageInfo>
+                  </VoltageDisplay>
+                )}
+                
+                {/* Sun Schedule */}
+                <SunScheduleContainer>
+                  <SunScheduleItem active={sunrise}>
+                    <SunIcon>🌅</SunIcon>
+                    <SunLabel>Sun Rise</SunLabel>
+                    <SunStatus active={sunrise}>
+                      {sunrise ? 'Aktiv' : 'Inaktiv'}
+                    </SunStatus>
+                  </SunScheduleItem>
+                  
+                  <SunScheduleItem active={sunset}>
+                    <SunIcon>🌇</SunIcon>
+                    <SunLabel>Sun Set</SunLabel>
+                    <SunStatus active={sunset}>
+                      {sunset ? 'Aktiv' : 'Inaktiv'}
+                    </SunStatus>
+                  </SunScheduleItem>
+                </SunScheduleContainer>
+              </LightControlsContainer>
+            )}
+            
+            {/* Non-light devices - original layout */}
+            {!isLightDevice && Dimmable !== undefined && (
+              <>
+                <DataBadge>
+                  <CycleLabel>Dimmable</CycleLabel>
+                  <CycleValue>{Dimmable}</CycleValue>
+                </DataBadge>
+                <DataBadge>
+                  <CycleLabel>Voltage</CycleLabel>
+                  <CycleValue>{Dimmable ? `${voltage}%` : `0%`}</CycleValue>
+                </DataBadge>
+              </>
             )}
           </DeviceDetails>
         </DeviceActionContainer>
@@ -90,6 +165,7 @@ const LogItem = ({ room, date, info }) => {
     if (deviceLower.includes('pump') || deviceLower.includes('water')) return '💧';
     if (deviceLower.includes('fan') || deviceLower.includes('ventil')) return '𖣘';
     if (deviceLower.includes('exhaust') || deviceLower.includes('ventil')) return '🌪️';
+    if (deviceLower.includes('inhaust') || deviceLower.includes('ventil')) return '🌪️';
     if (deviceLower.includes('light') || deviceLower.includes('led')) return '💡';
     if (deviceLower.includes('heat') || deviceLower.includes('warm')) return '🔥';
     if (deviceLower.includes('cool') || deviceLower.includes('ac')) return '❄️';
@@ -441,27 +517,49 @@ const DeviceHeader = styled.div`
   gap: 1rem;
 `;
 
+
 const DeviceIcon = styled.div`
   width: 50px;
   height: 50px;
   border-radius: 50%;
   background: ${props => {
     const device = props.device?.toLowerCase() || '';
+    if (device.includes('light') || device.includes('led')) {
+      return props.isLight 
+        ? 'linear-gradient(135deg, #ffd700 0%, #ff8c00 100%)'
+        : 'linear-gradient(135deg, #696969 0%, #404040 100%)';
+    }
+    // ... rest of your existing device backgrounds
     if (device.includes('pump') || device.includes('water')) return 'linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%)';
-    if (device.includes('fan')) return 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
-    if (device.includes('vent')) return 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
-    if (device.includes('heat')) return 'linear-gradient(135deg, #66eeea 0%, #764ba2 100%)';
-    if (device.includes('cool')) return 'linear-gradient(135deg, #337eea 0%, #764ba2 100%)';
-    if (device.includes('dehumidifier')) return 'linear-gradient(135deg, #663faa 0%, #764ba2 100%)';
-    if (device.includes('humidifier')) return 'linear-gradient(135deg, #667ffa 0%, #764ba2 100%)';
-    if (device.includes('light')) return 'linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)';
+    if (device.includes('vent'))  return 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+    if (device.includes('exhaust'))  return 'linear-gradient(135deg, #aa7eea 0%, #764ba2 100%)';
+    if (device.includes('inhaust'))  return 'linear-gradient(135deg, #aa7eea 0%, #777ba2 100%)';
+    if (device.includes('heater'))  return 'linear-gradient(135deg, #fffeea 0%, #777ba2 100%)';
+    if (device.includes('cooler'))  return 'linear-gradient(135deg, #00ffea 0%, #777ba2 100%)';
+    if (device.includes('dehumidifer'))  return 'linear-gradient(135deg, #fffeea 0%, #777bff 100%)';
+    if (device.includes('humidifer'))  return 'linear-gradient(135deg, #00ffea 0%, #777fff 100%)';
+
+
+    // ... etc
     return 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)';
   }};
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 1.5rem;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  box-shadow: ${props => props.isLight 
+    ? '0 4px 15px rgba(255, 215, 0, 0.3), 0 0 20px rgba(255, 215, 0, 0.1)'
+    : '0 4px 15px rgba(0, 0, 0, 0.1)'
+  };
+  transition: all 0.3s ease;
+  
+  &:hover {
+    transform: scale(1.05);
+    box-shadow: ${props => props.isLight 
+      ? '0 6px 20px rgba(255, 215, 0, 0.4), 0 0 30px rgba(255, 215, 0, 0.2)'
+      : '0 6px 20px rgba(0, 0, 0, 0.15)'
+    };
+  }
 `;
 
 const DeviceInfo = styled.div`
@@ -491,7 +589,7 @@ const DeviceDetails = styled.div`
   flex-wrap: wrap;
 `;
 
-const CycleIndicator = styled.div`
+const DataBadge = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -753,3 +851,208 @@ const LoadingDots = styled.div`
     75%, 95% { content: '...'; }
   }
 `;
+
+const StatusBadge = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: ${props => props.isLight 
+    ? (props.cycle 
+      ? 'linear-gradient(135deg, rgba(255, 215, 0, 0.2) 0%, rgba(255, 165, 0, 0.2) 100%)'
+      : 'linear-gradient(135deg, rgba(105, 105, 105, 0.2) 0%, rgba(64, 64, 64, 0.2) 100%)')
+    : 'rgba(255, 255, 255, 0.05)'
+  };
+  border: 1px solid ${props => props.isLight 
+    ? (props.cycle ? 'rgba(255, 215, 0, 0.3)' : 'rgba(105, 105, 105, 0.3)')
+    : 'rgba(255, 255, 255, 0.1)'
+  };
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+`;
+
+const StatusIcon = styled.div`
+  font-size: 1rem;
+`;
+
+const StatusLabel = styled.div`
+  color: var(--second-text-color);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+`;
+
+const StatusValue = styled.div`
+  color: var(--main-text-color);
+  font-size: 0.9rem;
+  font-weight: 600;
+`;
+
+const LightControlsContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.05) 0%, rgba(255, 165, 0, 0.05) 100%);
+  border: 1px solid rgba(255, 215, 0, 0.2);
+  border-radius: 12px;
+  padding: 1rem;
+  margin-top: 0.5rem;
+`;
+
+const DimmingControl = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+`;
+
+const DimmingHeader = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+`;
+
+const DimmingIcon = styled.div`
+  font-size: 1.2rem;
+  filter: drop-shadow(0 0 4px rgba(255, 215, 0, 0.5));
+`;
+
+const DimmingLabel = styled.div`
+  color: var(--main-text-color);
+  font-size: 0.9rem;
+  font-weight: 600;
+`;
+
+const DimmingValue = styled.div`
+  color: var(--primary-accent);
+  font-size: 1.5rem;
+  font-weight: 700;
+  text-align: center;
+  text-shadow: 0 0 8px rgba(255, 215, 0, 0.3);
+`;
+
+const DimmingBar = styled.div`
+  width: 100%;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+`;
+
+const DimmingFill = styled.div`
+  width: ${props => props.percentage}%;
+  height: 100%;
+  background: linear-gradient(90deg, 
+    rgba(255, 215, 0, 0.8) 0%, 
+    rgba(255, 165, 0, 0.9) 50%, 
+    rgba(255, 140, 0, 1) 100%
+  );
+  border-radius: 4px;
+  transition: width 0.3s ease;
+  box-shadow: 0 0 12px rgba(255, 215, 0, 0.4);
+  position: relative;
+  
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 3px;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 0 4px 4px 0;
+    box-shadow: 0 0 6px rgba(255, 255, 255, 0.6);
+  }
+`;
+
+const VoltageDisplay = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+`;
+
+const VoltageIcon = styled.div`
+  font-size: 1.1rem;
+  filter: drop-shadow(0 0 3px rgba(255, 255, 0, 0.6));
+`;
+
+const VoltageInfo = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+`;
+
+const VoltageLabel = styled.div`
+  color: var(--second-text-color);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+`;
+
+const VoltageValue = styled.div`
+  color: var(--main-text-color);
+  font-size: 0.9rem;
+  font-weight: 600;
+`;
+
+const SunScheduleContainer = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+`;
+
+const SunScheduleItem = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background: ${props => props.active 
+    ? 'linear-gradient(135deg, rgba(255, 140, 0, 0.2) 0%, rgba(255, 69, 0, 0.2) 100%)'
+    : 'rgba(255, 255, 255, 0.05)'
+  };
+  border: 1px solid ${props => props.active 
+    ? 'rgba(255, 140, 0, 0.3)' 
+    : 'rgba(255, 255, 255, 0.1)'
+  };
+  border-radius: 10px;
+  transition: all 0.3s ease;
+  
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+`;
+
+const SunIcon = styled.div`
+  font-size: 1.5rem;
+  filter: ${props => props.children?.includes('🌅') 
+    ? 'drop-shadow(0 0 6px rgba(255, 140, 0, 0.6))'
+    : 'drop-shadow(0 0 6px rgba(255, 69, 0, 0.6))'
+  };
+`;
+
+const SunLabel = styled.div`
+  color: var(--second-text-color);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  text-align: center;
+`;
+
+const SunStatus = styled.div`
+  color: ${props => props.active ? '#ff8c00' : 'var(--second-text-color)'};
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-align: center;
+`;
+
