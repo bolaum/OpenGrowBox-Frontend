@@ -22,7 +22,7 @@ const ECCard = ({pause,resume,isPlaying}) => {
           .filter(
             ([key, entity]) =>
               key.startsWith('sensor.') &&
-              (key.toLowerCase().includes('ec') || key.toLowerCase().includes('conductivity')) &&
+              (key.toLowerCase().includes('soil') || key.toLowerCase().includes('boden'))  &&
               !key.toLowerCase().includes('wifi') && 
               !key.toLowerCase().includes('mqtt') &&
               !key.toLowerCase().includes('connect') &&
