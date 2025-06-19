@@ -163,12 +163,15 @@ const LogItem = ({ room, date, info }) => {
   const getDeviceIcon = (device) => {
     const deviceLower = device.toLowerCase();
     if (deviceLower.includes('pump') || deviceLower.includes('water')) return '💧';
-    if (deviceLower.includes('fan') || deviceLower.includes('ventil')) return '𖣘';
+    if (deviceLower.includes('fan') || deviceLower.includes('venti')) return '𖣘';
     if (deviceLower.includes('exhaust') || deviceLower.includes('ventil')) return '🌪️';
     if (deviceLower.includes('inhaust') || deviceLower.includes('ventil')) return '🌪️';
     if (deviceLower.includes('light') || deviceLower.includes('led')) return '💡';
     if (deviceLower.includes('heat') || deviceLower.includes('warm')) return '🔥';
     if (deviceLower.includes('cool') || deviceLower.includes('ac')) return '❄️';
+    if (deviceLower.includes('dehumidi') || deviceLower.includes('warm')) return '🏜️';
+    if (deviceLower.includes('humidi') || deviceLower.includes('ac')) return '🌧️';
+    if (deviceLower.includes('climate') || deviceLower.includes('ac')) return '🌦️';
     return '⚙️';
   };
 
