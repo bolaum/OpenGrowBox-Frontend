@@ -40,6 +40,10 @@ const SettingsFooter = () => {
   const handleTelegramClick = () => {
     window.open('https://t.me/+I1P3XoSSbbtkZjUy', '_blank');
   };
+  
+  const handleWebPageClick = () => {
+    window.open('https://opengrowbox.net/', '_blank');
+  };
 
 
   const handleDiscordClick = () => {
@@ -49,7 +53,7 @@ const SettingsFooter = () => {
 
   return (
     <FooterContainer>
-      <Copyright>© {currentYear} OpenGrowBox</Copyright>
+      <Copyright onClick={handleWebPageClick}>© {currentYear} OpenGrowBox</Copyright >
       <About onClick={handleWikiClick}>Wiki</About>
       <TelegramButton onClick={handleTelegramClick}>
         <FaTelegram size={18} /> 
@@ -78,6 +82,7 @@ const FooterContainer = styled.div`
 
 const Copyright = styled.div`
   font-size: 0.7rem;
+  cursor:pointer;
 `;
 
 const About = styled.div`
