@@ -12,14 +12,15 @@ const LogItem = ({ room, date, info }) => {
     const action = data.Action?.toLowerCase() || '';
     
     if (msg.includes('vpd')) return 'vpd';
+    if (data.NightVPDHold !== undefined) return 'night-vpd'; // Neue Zeile
     if (msg.includes('humidity')) return 'humidity';
     if (msg.includes('temperature')) return 'temperature';
     if (data.VPD !== undefined) return 'sensor';
     if (data.action) return 'action';
-    // Check for pump/device actions
     if (data.Device || data.Action || data.Cycle !== undefined) return 'device';
     return 'default';
   };
+
 
   const logType = getLogType(parsedInfo);
 
@@ -159,6 +160,38 @@ const LogItem = ({ room, date, info }) => {
     return null;
   };
 
+  // Format VPD Night Hold Actions actions
+  const formatNightVPDData = (data) => {
+    if (data.NightVPDHold !== undefined) {
+      const status = data.NightVPDHold || '';
+      const roomName = data.Name || 'Unknown Room';
+      
+      return (
+        <NightVPDContainer>
+          <NightVPDHeader>
+            <NightVPDIcon>🌙</NightVPDIcon>
+            <NightVPDInfo>
+              <NightVPDTitle>Night VPD Hold</NightVPDTitle>
+              <NightVPDRoom>{roomName}</NightVPDRoom>
+            </NightVPDInfo>
+          </NightVPDHeader>
+          
+          <NightVPDStatus status={status}>
+            <StatusIndicator status={status}>
+              {status === 'Active' ? '🟢' : status === 'NotActive Ignoring-VPD' ? '🟡' : '🔴'}
+            </StatusIndicator>
+            <StatusText status={status}>
+              {status === 'Active' ? 'Aktiv' : 
+              status === 'NotActive Ignoring-VPD' ? 'Inactiv - Ignoring VPD' : 
+              status}
+            </StatusText>
+          </NightVPDStatus>
+        </NightVPDContainer>
+      );
+    }
+    return null;
+  };
+
   // Get device icon based on device type
   const getDeviceIcon = (device) => {
     const deviceLower = device.toLowerCase();
@@ -242,7 +275,8 @@ const LogItem = ({ room, date, info }) => {
   const actionData = formatActionData(parsedInfo);
   const deviceData = formatDeviceAction(parsedInfo);
   const deviationData = formatDeviationData(parsedInfo);
-
+  const nightVPDData = formatNightVPDData(parsedInfo);
+  
   return (
     <LogItemContainer logType={logType}>
       <LogHeader logType={logType}>
@@ -256,8 +290,9 @@ const LogItem = ({ room, date, info }) => {
         {sensorData && sensorData}
         {actionData && actionData}
         {deviceData && deviceData}
+        {nightVPDData && nightVPDData}
         {deviationData && deviationData}
-        {!sensorData && !actionData && !deviceData && !deviationData && (
+        {!sensorData && !actionData && !deviceData && !deviationData && !nightVPDData && (
           <FallbackContent>
             <pre>{JSON.stringify(parsedInfo, null, 2)}</pre>
           </FallbackContent>
@@ -327,7 +362,7 @@ const GrowLogs = () => {
           return null;
         };
         
-        return searchInStructure(data) || 'Unkown Data or Missing Devices';
+        return searchInStructure(data) || 'Missing Devices for Action';
       };
 
       const roomName = findRoomName(event.data);
@@ -450,6 +485,7 @@ const LogItemContainer = styled.div`
       case 'action': return 'linear-gradient(135deg, rgba(255, 94, 77, 0.1) 0%, rgba(255, 154, 0, 0.1) 100%)';
       case 'device': return 'linear-gradient(135deg, rgba(116, 75, 162, 0.1) 0%, rgba(74, 144, 226, 0.1) 100%)';
       case 'vpd': return 'linear-gradient(135deg, rgba(131, 58, 180, 0.1) 0%, rgba(253, 29, 29, 0.1) 100%)';
+      case 'night-vpd': return 'linear-gradient(135deg, rgba(44, 62, 80, 0.1) 0%, rgba(52, 152, 219, 0.1) 100%)'; 
       case 'humidity': return 'linear-gradient(135deg, rgba(45, 134, 255, 0.1) 0%, rgba(45, 253, 159, 0.1) 100%)';
       case 'temperature': return 'linear-gradient(135deg, rgba(255, 94, 77, 0.1) 0%, rgba(255, 203, 95, 0.1) 100%)';
       default: return 'rgba(255, 255, 255, 0.05)';
@@ -507,7 +543,6 @@ const LogContent = styled.div`
   padding: 1rem 1.25rem 1.25rem;
 `;
 
-// Device Action Styles
 const DeviceActionContainer = styled.div`
   display: flex;
   flex-direction: column;
@@ -519,7 +554,6 @@ const DeviceHeader = styled.div`
   align-items: center;
   gap: 1rem;
 `;
-
 
 const DeviceIcon = styled.div`
   width: 50px;
@@ -616,7 +650,6 @@ const CycleValue = styled.div`
   font-weight: 600;
 `;
 
-// Existing styles continue...
 const SensorGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
@@ -1059,3 +1092,106 @@ const SunStatus = styled.div`
   text-align: center;
 `;
 
+const NightVPDContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+`;
+
+const NightVPDHeader = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+`;
+
+const NightVPDIcon = styled.div`
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+  transition: all 0.3s ease;
+  
+  &:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
+  }
+`;
+
+const NightVPDInfo = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+`;
+
+const NightVPDTitle = styled.div`
+  color: var(--main-text-color);
+  font-size: 1.1rem;
+  font-weight: 600;
+`;
+
+const NightVPDRoom = styled.div`
+  color: var(--second-text-color);
+  font-size: 0.85rem;
+  opacity: 0.8;
+`;
+
+const NightVPDStatus = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: ${props => {
+    switch(props.status) {
+      case 'Active': 
+        return 'linear-gradient(135deg, rgba(46, 204, 113, 0.15) 0%, rgba(39, 174, 96, 0.15) 100%)';
+      case 'NotActive Ignoring-VPD': 
+        return 'linear-gradient(135deg, rgba(241, 196, 15, 0.15) 0%, rgba(243, 156, 18, 0.15) 100%)';
+      default: 
+        return 'linear-gradient(135deg, rgba(231, 76, 60, 0.15) 0%, rgba(192, 57, 43, 0.15) 100%)';
+    }
+  }};
+  border: 1px solid ${props => {
+    switch(props.status) {
+      case 'Active': return 'rgba(46, 204, 113, 0.3)';
+      case 'NotActive Ignoring-VPD': return 'rgba(241, 196, 15, 0.3)';
+      default: return 'rgba(231, 76, 60, 0.3)';
+    }
+  }};
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+`;
+
+const StatusIndicator = styled.div`
+  font-size: 1.2rem;
+  filter: drop-shadow(0 0 4px ${props => {
+    switch(props.status) {
+      case 'Active': return 'rgba(46, 204, 113, 0.6)';
+      case 'NotActive Ignoring-VPD': return 'rgba(241, 196, 15, 0.6)';
+      default: return 'rgba(231, 76, 60, 0.6)';
+    }
+  }});
+`;
+
+const StatusText = styled.div`
+  color: ${props => {
+    switch(props.status) {
+      case 'Active': return '#2ecc71';
+      case 'NotActive Ignoring-VPD': return '#f1c40f';
+      default: return '#e74c3c';
+    }
+  }};
+  font-size: 1rem;
+  font-weight: 600;
+  text-transform: capitalize;
+`;
