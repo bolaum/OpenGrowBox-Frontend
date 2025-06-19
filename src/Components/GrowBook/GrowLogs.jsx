@@ -88,7 +88,7 @@ const LogItem = ({ room, date, info }) => {
   const getDeviceIcon = (device) => {
     const deviceLower = device.toLowerCase();
     if (deviceLower.includes('pump') || deviceLower.includes('water')) return '💧';
-    if (deviceLower.includes('fan') || deviceLower.includes('ventil')) return '🌪️';
+    if (deviceLower.includes('fan') || deviceLower.includes('ventil')) return '𖣘';
     if (deviceLower.includes('exhaust') || deviceLower.includes('ventil')) return '🌪️';
     if (deviceLower.includes('light') || deviceLower.includes('led')) return '💡';
     if (deviceLower.includes('heat') || deviceLower.includes('warm')) return '🔥';
@@ -248,13 +248,13 @@ const GrowLogs = () => {
           return null;
         };
         
-        return searchInStructure(data) || 'Unbekannt';
+        return searchInStructure(data) || 'Unkown Data or Missing Devices';
       };
 
       const roomName = findRoomName(event.data);
       
       // Enhanced debug logging
-      if (roomName === 'Unbekannt') {
+      if (roomName === 'Unkown Data or Missing Devices') {
         console.warn('Could not find room name in event:', {
           eventData: event.data,
           dataType: typeof event.data,
@@ -447,8 +447,13 @@ const DeviceIcon = styled.div`
   border-radius: 50%;
   background: ${props => {
     const device = props.device?.toLowerCase() || '';
-    if (device.includes('pump') || device.includes('mist')) return 'linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%)';
+    if (device.includes('pump') || device.includes('water')) return 'linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%)';
     if (device.includes('fan')) return 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+    if (device.includes('vent')) return 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+    if (device.includes('heat')) return 'linear-gradient(135deg, #66eeea 0%, #764ba2 100%)';
+    if (device.includes('cool')) return 'linear-gradient(135deg, #337eea 0%, #764ba2 100%)';
+    if (device.includes('dehumidifier')) return 'linear-gradient(135deg, #663faa 0%, #764ba2 100%)';
+    if (device.includes('humidifier')) return 'linear-gradient(135deg, #667ffa 0%, #764ba2 100%)';
     if (device.includes('light')) return 'linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)';
     return 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)';
   }};
