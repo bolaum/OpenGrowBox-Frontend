@@ -88,8 +88,8 @@ const OGBNotes = () => {
           onChange={handleChange}
           placeholder="Enter some Notes Here..."
         />
-        <InfoText>{noteText.length}/{MAX_LENGTH} Zeichen</InfoText>
-        <Button type="submit">Speichern</Button>
+        <InfoText>{noteText.length}/{MAX_LENGTH} Chars</InfoText>
+        <Button type="submit">Save</Button>
       </StyledForm>
       {status && <StatusText>{status}</StatusText>}
     </NotesContainer>

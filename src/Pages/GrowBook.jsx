@@ -16,19 +16,16 @@ const GrowBook = () => {
   return (
     <MainContainer>
       <ContainerHeader>
-        
         <DashboardTitle firstText="Grow" secondText="Book"/>
-
       </ContainerHeader>
         <InnerContent>
             <MainSection>
-            <GrowDayCounter/>
-            <OGBNotes/>
-            <StrainDB/>
+              <GrowDayCounter/>
+              <OGBNotes/>
             </MainSection>
-            <DataSection>
-            <GrowLogs/>
 
+            <DataSection>
+              <GrowLogs/>
             </DataSection>
         </InnerContent>
       <BottomBar/>

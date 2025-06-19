@@ -15,6 +15,7 @@ import VPDCard from '../Cards/SliderCards/VPDCard'
 import DutyCycleCard from '../Cards/SliderCards/DutyCycleCard'
 import LightIntensity from '../Cards/SliderCards/LightIntensity'
 import { SliderContext } from '../../misc/SliderContext'
+import PPFDCard from '../Cards/SliderCards/PPFD_DLI';
 
 const DashboardSlider = () => {
 
@@ -95,6 +96,9 @@ const DashboardSlider = () => {
     </SlideContent>,
     <SlideContent key="slide9">
       <LightIntensity pause={pause} resume={resume} isPlaying={isPlaying}/>
+    </SlideContent>,
+    <SlideContent key="slide10">
+      <PPFDCard pause={pause} resume={resume} isPlaying={isPlaying}/>
     </SlideContent>,
   ];
 
