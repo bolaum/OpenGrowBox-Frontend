@@ -8,7 +8,7 @@ const Settings = () => {
   return (
     <MainContainer >
       <ContainerHeader>
-        <DashboardTitle firstText="Settings"/>
+        <DashboardTitle firstText="OGB" secondText="Settings"/>
       </ContainerHeader>
 
       <InnerContent>

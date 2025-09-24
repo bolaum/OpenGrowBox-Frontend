@@ -4,7 +4,7 @@ import styled from 'styled-components';
 import { MdLightMode,MdOutlineCo2, MdDeviceHub} from "react-icons/md";
 import { ImTarget } from "react-icons/im";
 import ControllCollection from './ControlCards/ControllCollection';
-import { GiWateringCan } from "react-icons/gi";
+import { GiHamburger, GiWateringCan } from "react-icons/gi";
 import OGBIcon from '../../misc/OGBIcon'
 
 
@@ -33,7 +33,10 @@ const ControllCard = () => {
         <IconWrapper $active={currentOption === "Hydro Settings"} onClick={() => handleOnClickIcon("Hydro Settings")}>
           <GiWateringCan />
         </IconWrapper>
-        <IconWrapper $active={currentOption === "Device Settings"} onClick={() => handleOnClickIcon("Device Settings")}>
+        <IconWrapper $active={currentOption === "Feed Settings"} onClick={() => handleOnClickIcon("Feed Settings")}>
+          <GiHamburger />
+        </IconWrapper>
+        <IconWrapper $active={currentOption === "Special Settings"} onClick={() => handleOnClickIcon("Special Settings")}>
           <MdDeviceHub />
         </IconWrapper>
 

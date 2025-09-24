@@ -4,37 +4,43 @@ import { useHomeAssistant } from '../../Context/HomeAssistantContext';
 import formatLabel from '../../../misc/formatLabel';
 import HistoryChart from '../HistoryChart';
 
-const ECCard = ({pause,resume,isPlaying}) => {
-  const { entities, connection } = useHomeAssistant();
+const ECCard = ({ pause, resume, isPlaying }) => {
+  const { entities } = useHomeAssistant();
   const [ecSensors, setEcSensors] = useState([]);
-  const [selectedSensor, setSelectedSensor] = useState(null); // State für ausgewählten Sensor (Modal)
-
-  const convertEC = (value, unit) => {
-    if (unit === "µS/cm") {
-      return value / 1000; // Umrechnung von µS/cm in mS/cm
-    }
-    return value; // Falls bereits in mS/cm
-  };
+  const [selectedSensor, setSelectedSensor] = useState(null);
 
   useEffect(() => {
-    const updateDewCard = () => {
-        const sensors = Object.entries(entities)
-          .filter(
-            ([key, entity]) =>
-              key.startsWith('sensor.') &&
-              (key.toLowerCase().includes('soil') || key.toLowerCase().includes('boden'))  &&
-              !key.toLowerCase().includes('wifi') && 
-              !key.toLowerCase().includes('mqtt') &&
-              !key.toLowerCase().includes('connect') &&
-              !isNaN(parseFloat(entity.state))
-          )
+    const updateCard = () => {
+      const sensors = Object.entries(entities)
+        .filter(
+          ([key, entity]) =>
+            key.startsWith('sensor.') &&
+            (key.toLowerCase().includes('soil') ||
+              key.toLowerCase().includes('boden') ||
+              key.toLowerCase().includes('_moisture') ||
+              key.toLowerCase().includes('_conductivity')) &&
+            !key.toLowerCase().includes('wifi') &&
+            !key.toLowerCase().includes('mqtt') &&
+            !key.toLowerCase().includes('connect') &&
+            !isNaN(parseFloat(entity.state))
+        )
         .map(([key, entity]) => {
           const rawValue = parseFloat(entity.state);
-          const unit = entity.attributes?.unit_of_measurement || 'mS/cm';
+          const unit = entity.attributes?.unit_of_measurement || '%';
+
+          let value = rawValue;
+          let displayUnit = unit;
+
+          // Konvertierung nur für Leitfähigkeit
+          if (unit === 'µS/cm') {
+            value = rawValue / 1000;
+            displayUnit = 'mS/cm';
+          }
+
           return {
             id: key,
-            value: convertEC(rawValue, unit), // Einheit konvertieren
-            unit: 'mS/cm', // Alle Werte einheitlich in mS/cm darstellen
+            value,
+            unit: displayUnit,
             friendlyName: formatLabel(entity.attributes?.friendly_name || key),
           };
         });
@@ -42,54 +48,63 @@ const ECCard = ({pause,resume,isPlaying}) => {
       setEcSensors(sensors);
     };
 
-    updateDewCard();
+    updateCard();
   }, [entities]);
 
-  const getColorForValue = (value) => {
-    if (value < 0.1) return '#60a5fa'; // Sehr niedrige Leitfähigkeit (evtl. zu wenig Nährstoffe)
-    if (value >= 0.1 && value <= 0.5) return 'rgba(85, 230, 12, 0.85)'; // Optimaler Bereich
-    if (value > 0.5 && value <= 1.0) return 'rgba(197, 230, 12, 0.85)'; // Mittlerer Bereich
-    if (value > 1.0 && value <= 1.5) return 'rgba(230, 212, 12, 0.85)'; // Hoher EC-Wert
-    if (value > 1.5 && value <= 2.5) return 'rgba(230, 63, 12, 0.85)'; // Hoher EC-Wert
-    return '#ef4444'; // Extrem hohe EC-Werte
+  // Farb-Logik nach Einheit
+  const getColorForValue = (value, unit) => {
+    if (unit === '%' || unit.toLowerCase().includes('moisture')) {
+      // Feuchtigkeit
+      if (value < 20) return '#60a5fa'; // sehr trocken
+      if (value >= 20 && value <= 40) return 'rgba(230, 212, 12, 0.85)'; // niedrig
+      if (value > 40 && value <= 70) return 'rgba(85, 230, 12, 0.85)'; // optimal
+      if (value > 70 && value <= 90) return 'rgba(197, 230, 12, 0.85)'; // hoch
+      return '#ef4444'; // extrem nass
+    } else {
+      // EC-Wert
+      if (value < 0.1) return '#60a5fa'; // sehr niedrig
+      if (value >= 0.1 && value <= 0.5) return 'rgba(85, 230, 12, 0.85)'; // optimal
+      if (value > 0.5 && value <= 1.0) return 'rgba(197, 230, 12, 0.85)'; // mittel
+      if (value > 1.0 && value <= 1.5) return 'rgba(230, 212, 12, 0.85)'; // hoch
+      if (value > 1.5 && value <= 2.5) return 'rgba(230, 63, 12, 0.85)'; // sehr hoch
+      return '#ef4444'; // extrem hoch
+    }
   };
 
   const handleDataBoxClick = (sensorId) => {
-    pause(); 
+    pause();
     setSelectedSensor(sensorId);
   };
 
   const closeHistoryChart = () => {
     setSelectedSensor(null);
-    if(isPlaying){
-      resume(); 
+    if (isPlaying) {
+      resume();
     }
   };
 
   return (
     <CardContainer>
-      <Header><h4>SOIL EC</h4></Header>
+      <Header><h4>SOIL</h4></Header>
       <Content>
         {ecSensors.map((sensor) => (
           <DataBox key={sensor.id} onClick={() => handleDataBoxClick(sensor.id)}>
             <Label>{sensor.friendlyName}</Label>
             <ValueWrapper>
-              <Value style={{ color: getColorForValue(sensor.value) }}>
+              <Value style={{ color: getColorForValue(sensor.value, sensor.unit) }}>
                 {sensor.value.toFixed(2)}
               </Value>
               <Unit>{sensor.unit}</Unit>
             </ValueWrapper>
           </DataBox>
         ))}
-        {ecSensors.length === 0 && <NoData>No EC sensors found.</NoData>}
+        {ecSensors.length === 0 && <NoData>No sensors found.</NoData>}
       </Content>
 
-      {/* Bedingtes Rendern des Modals */}
       {selectedSensor && (
         <ModalOverlay onClick={closeHistoryChart}>
           <ModalContent onClick={(e) => e.stopPropagation()}>
             <HistoryChart sensorId={selectedSensor} onClose={closeHistoryChart} />
-            <CloseButton onClick={closeHistoryChart}>X</CloseButton>
           </ModalContent>
         </ModalOverlay>
       )}
@@ -142,7 +157,6 @@ const Unit = styled.div``;
 
 const NoData = styled.div``;
 
-// Modal-Styling
 const ModalOverlay = styled.div`
   position: fixed;
   top: 0;
@@ -159,21 +173,10 @@ const ModalOverlay = styled.div`
 const ModalContent = styled.div`
   background: #fff;
   width: 65%;
-  height: 55%;
+  height: 65%;
   position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-`;
-
-const CloseButton = styled.button`
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  cursor: pointer;
-  background: transparent;
-  border: none;
-  font-size: 1.2rem;
-  color: var(--main-text-color);
 `;

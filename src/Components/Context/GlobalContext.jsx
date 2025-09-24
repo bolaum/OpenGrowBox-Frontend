@@ -1,6 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import ogbversions from '../../version';
-
+import { ogbversions } from '../../config';
 
 const GlobalStateContext = createContext();
 
@@ -10,6 +9,13 @@ const initialState = {
     hassServer:"",
     haToken: null,
     hass:null,
+  },
+  OGBPremium:{
+    access_token:null,
+    refresh_token:null,
+    user:null,
+    plan:'free',
+    isPremium:null,
   },
   hass:{},
   hassWS:{},
@@ -30,6 +36,10 @@ export const GlobalStateProvider = ({ children }) => {
   const [srvADDR,setSrvADDR] = useState(null)
   const [HASS,setHASS] = useState(null)
   const [accessToken,setAccessToken] = useState(null)
+  const [entities, setEntities] = useState({});
+  const [entitieStates, setEntitieStates] = useState({});
+  const [currentRoom, setCurrentRoom] = useState('');
+  const [roomOptions, setRoomOptions] = useState([]);
 
   // Effekt zum Speichern des Zustands im localStorage bei Änderungen
   
@@ -51,11 +61,26 @@ export const GlobalStateProvider = ({ children }) => {
   }
 
   useEffect(() => {
+    if (!HASS?.states) return;
+
+    const roomEntity = HASS.states['select.ogb_rooms'];
+
+    if (roomEntity && roomEntity.state !== currentRoom) {
+      setCurrentRoom(roomEntity.state || '');
+
+      if (roomEntity.attributes?.options) {
+        setRoomOptions(roomEntity.attributes.options);
+      }
+    }
+  }, [HASS, currentRoom]);
+
+  useEffect(() => {
     if (import.meta.env.PROD) {
       console.log(`
         OpenGrowBox: 🌱🌱🌱🌱🌱🌱🌱🌱🌱🌱🌱
         🖥 Frontend: ${ogbversions.frontend}
         ⚙️ Backend: ${ogbversions.backend}
+        👑 Prem-API: ${ogbversions.premapi}
         Happy GROWING 🌱🌱🌱🌱🌱🌱🌱🌱🌱🌱🌱
         `)
     }else{
@@ -63,6 +88,7 @@ export const GlobalStateProvider = ({ children }) => {
         OpenGrowBox: 🌱🌱🌱🌱🌱🌱🌱🌱🌱🌱🌱
         🖥 Frontend: ${ogbversions.frontend}
         ⚙️ Backend: ${ogbversions.backend}
+        👑 Prem-API: ${ogbversions.premapi}
         Happy GROWING 🌱🌱🌱🌱🌱🌱🌱🌱🌱🌱🌱
         `)
     }
@@ -72,7 +98,6 @@ export const GlobalStateProvider = ({ children }) => {
     console.log("HASS:",hass)
   
   }, []);
-
 
   useEffect(() => {
     if (import.meta.env.PROD) {
@@ -146,7 +171,7 @@ export const GlobalStateProvider = ({ children }) => {
             return {noHASS:"IN-DEV"}
         }
 
-    }
+  }
 
   return (
     <GlobalStateContext.Provider
@@ -157,6 +182,11 @@ export const GlobalStateProvider = ({ children }) => {
         setDeep,
         getHASS,
         HASS,
+        entities,
+        currentRoom,
+        setCurrentRoom,
+        roomOptions,
+        setRoomOptions,
         accessToken,
       }}
     >

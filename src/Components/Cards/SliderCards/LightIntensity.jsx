@@ -98,7 +98,7 @@ const LightIntensity = ({pause,resume,isPlaying}) => {
         <ModalOverlay onClick={closeHistoryChart}>
           <ModalContent onClick={(e) => e.stopPropagation()}>
             <HistoryChart sensorId={selectedSensor} onClose={closeHistoryChart} />
-            <CloseButton onClick={closeHistoryChart}>X</CloseButton>
+           
           </ModalContent>
         </ModalOverlay>
       )}
@@ -162,7 +162,7 @@ const ModalOverlay = styled.div`
 const ModalContent = styled.div`
   background: #fff;
   width: 65%;
-  height: 55%;
+  height: 65%;
   position: relative;
   display: flex;
   flex-direction: column;
@@ -170,14 +170,3 @@ const ModalContent = styled.div`
   justify-content: center;
 `;
 
-
-const CloseButton = styled.button`
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  cursor: pointer;
-  background: transparent;
-  border: none;
-  font-size: 1.2rem;
-  color: var(--main-text-color);
-`;

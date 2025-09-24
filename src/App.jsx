@@ -1,8 +1,12 @@
-import React from 'react';
 import styled from 'styled-components';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
 import { GlobalStateProvider } from './Components/Context/GlobalContext';
+import HomeAssistantProvider from './Components/Context/HomeAssistantContext';
+
+import { OGBPremiumProvider } from './Components/Context/OGBPremiumContext';
+
+
 import ErrorBoundary from '../src/misc/ErrorBoundary';
 import ConnectionStatus from '../src/misc/ConnectionStatus'
 
@@ -12,9 +16,11 @@ import SetupPage from './Pages/SetupPage';
 import Settings from './Pages/Settings';
 import Home from './Pages/Home';
 import Interface from './Pages/Interface'
+import Premium from './Pages/Premium';
 
-import HomeAssistantProvider from './Components/Context/HomeAssistantContext';
 import ThemeGlobalStyle from './Pages/ThemeGlobalStyle';
+
+import StrainDB from './Components/Premium/StrainDB';
 
 export default function App() {
 
@@ -25,37 +31,40 @@ export default function App() {
         <GlobalStateProvider>
           <ErrorBoundary>
             <HomeAssistantProvider>
-              <ThemeGlobalStyle />
-              <Router basename={basename}>
-                <AppContainer>
-                  {/* Hintergrund-Gradients */}
-                  <BackgroundContainer>
-                    <div className='gradient-1'></div>
-                    <div className='gradient-2'></div>
-                    <div className='gradient-3'></div>
-                    <div className='gradient-4'></div>
-                    <div className='gradient-5'></div>
-                  </BackgroundContainer>
-                  {/* Sidebar und Main-Content */}
-                  {/* Connection Status Notification */}
-                  <ConnectionStatus />
-                  <MainContent>
-                    <Routes>
-                      <Route path="/" element={<Interface />} />
-                      <Route path="/home" element={<Home />} />
-                      <Route path="/dashboard" element={<Dashboard />} />
-                      <Route path="/settings" element={<Settings />} />
-                      <Route path="/growbook" element={<GrowBook />} />
-                      <Route path="/setup" element={<SetupPage />} />
-                    </Routes>
-                  </MainContent>
-                </AppContainer>
-              </Router>
+                <OGBPremiumProvider>
+                  <ThemeGlobalStyle />
+                  <Router basename={basename}>
+                    <AppContainer>
+                      {/* Hintergrund-Gradients */}
+                      <SubtleGridOverlay />
+                      <BackgroundContainer>
+                        <div className='gradient-1'></div>
+                        <div className='gradient-2'></div>
+                        <div className='gradient-3'></div>
+                        <div className='gradient-4'></div>
+                        <div className='gradient-5'></div>
+                      </BackgroundContainer>
+                      {/* Sidebar und Main-Content */}
+                      {/* Connection Status Notification */}
+                      <ConnectionStatus />
+                      <MainContent>
+                        <Routes>
+                          <Route path="/" element={<Interface />} />
+                          <Route path="/home" element={<Home />} />
+                          <Route path="/dashboard" element={<Dashboard />} />
+                          <Route path="/premium" element={<Premium />} />
+                          <Route path="/strainDB" element={<StrainDB />} />
+                          <Route path="/settings" element={<Settings />} />
+                          <Route path="/growbook" element={<GrowBook />} />
+                          <Route path="/setup" element={<SetupPage />} />
+                        </Routes>
+                      </MainContent>
+                    </AppContainer>
+                  </Router>
+                </OGBPremiumProvider>
             </HomeAssistantProvider>
           </ErrorBoundary>
-
         </GlobalStateProvider>
-
     </GlobalOGBContainer>
   );
 }
@@ -67,14 +76,14 @@ const AppContainer = styled.div`
   position: relative; /* Damit MainContent sich normal verhält */
   display: flex;
   z-index: 0;
-  min-height: 100vh;
+  min-height:100vh;
 `;
 
 // Hintergrund für Gradients
 const BackgroundContainer = styled.div`
   position: fixed; /* Stellt sicher, dass der Hintergrund fixiert bleibt */
-  width: 100vw;
-  height: 100vh;
+  width: 100%;
+  height: 100%;
   top: 0;
   left: 0;
   z-index: -1; /* Bringt den Hintergrund nach hinten */
@@ -116,9 +125,22 @@ const BackgroundContainer = styled.div`
   }
 `;
 
+const SubtleGridOverlay = styled.div`
+  position: absolute;
+  inset: 0;
+  background-image: 
+    linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-size: 50px 50px;
+  pointer-events: none;
+`;
+
+
+
 // Hauptinhalt, damit er über den Gradients bleibt
 const MainContent = styled.div`
   flex-grow: 1;
   width: 100%;
+  height:100%;
 `;
 

@@ -6,7 +6,10 @@ const RoomsCard = ({ areas }) => {
   const { currentRoom } = useHomeAssistant();
 
   // Verdoppelt das Array, um einen nahtlosen Übergang zu erreichen
-  const duplicatedAreas = areas.concat(areas);
+  const duplicatedAreas = areas
+    .filter(a => a.toLowerCase() !== "ambient")
+    .concat(areas.filter(a => a.toLowerCase() !== "ambient"));
+
 
   return (
     <Container>

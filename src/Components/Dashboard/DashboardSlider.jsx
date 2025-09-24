@@ -16,6 +16,7 @@ import DutyCycleCard from '../Cards/SliderCards/DutyCycleCard'
 import LightIntensity from '../Cards/SliderCards/LightIntensity'
 import { SliderContext } from '../../misc/SliderContext'
 import PPFDCard from '../Cards/SliderCards/PPFD_DLI';
+import TankLevelCard from '../Cards/SliderCards/TankLevelCard';
 
 const DashboardSlider = () => {
 
@@ -99,6 +100,9 @@ const DashboardSlider = () => {
     </SlideContent>,
     <SlideContent key="slide10">
       <PPFDCard pause={pause} resume={resume} isPlaying={isPlaying}/>
+    </SlideContent>,
+    <SlideContent key="slide11">
+      <TankLevelCard pause={pause} resume={resume} isPlaying={isPlaying}/>
     </SlideContent>,
   ];
 

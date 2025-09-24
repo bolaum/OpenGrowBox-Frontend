@@ -105,7 +105,12 @@ export const HomeAssistantProvider = ({ children }) => {
             
             if (roomEntity) {
               setCurrentRoom(roomEntity.state || '');
-              setRoomOptions(roomEntity.attributes?.options || []);
+              setRoomOptions(
+                (roomEntity.attributes?.options || []).filter(
+                  r => r.toLowerCase() !== "ambient"
+                )
+              );
+
             }
             
             if (tokenEntity) {
@@ -249,7 +254,7 @@ export const HomeAssistantProvider = ({ children }) => {
       window.removeEventListener('online', handleOnlineStatusChange);
       window.removeEventListener('offline', handleOnlineStatusChange);
     };
-  }, []);
+  }, [connection]);
 
   // Main connection effect
   useEffect(() => {
@@ -309,10 +314,10 @@ export const HomeAssistantProvider = ({ children }) => {
   return (
     <HomeAssistantContext.Provider
       value={{
-        entities,
         connection,
         loading,
         error,
+        entities,
         currentRoom,
         setCurrentRoom,
         roomOptions,

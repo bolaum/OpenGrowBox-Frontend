@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useHomeAssistant } from '../Context/HomeAssistantContext';
 import styled from 'styled-components';
 
+
 const MAX_LENGTH = 254;
 
 const textChange = async (entity, value, connection) => {
@@ -23,7 +24,8 @@ const textChange = async (entity, value, connection) => {
 };
 
 const OGBNotes = () => {
-  const { entities, currentRoom, connection } = useHomeAssistant();
+  const { connection,entities,currentRoom } = useHomeAssistant();
+
   const [ogbNoteEntity, setOGBNoteEntity] = useState(null);
   const [noteText, setNoteText] = useState('');
   const [status, setStatus] = useState('');
@@ -32,18 +34,16 @@ const OGBNotes = () => {
   const typingTimerRef = useRef(null);
 
   useEffect(() => {
-    const noteSensor = Object.entries(entities).find(
-      ([key, entity]) =>
-        key.startsWith('text.') &&
-        key.toLowerCase().includes('notes') &&
-        entity.entity_id.toLowerCase().includes(currentRoom?.toLowerCase())
-    );
-
+  const noteSensor = Object.entries(entities).find(
+    ([key]) =>
+      key.startsWith("text.ogb_notes_") &&
+      key.toLowerCase().includes(currentRoom?.toLowerCase())
+  );
+    console.log(noteSensor)
     if (noteSensor) {
       const [, entity] = noteSensor;
       setOGBNoteEntity(entity.entity_id);
 
-      // Nur synchronisieren, wenn keine ungespeicherten Änderungen vorliegen
       if (!hasUnsavedChanges && entity.state !== noteText) {
         setNoteText(entity.state || '');
       }
@@ -56,13 +56,9 @@ const OGBNotes = () => {
     setIsTyping(true);
     setHasUnsavedChanges(true);
 
-    if (typingTimerRef.current) {
-      clearTimeout(typingTimerRef.current);
-    }
+    if (typingTimerRef.current) clearTimeout(typingTimerRef.current);
 
-    typingTimerRef.current = setTimeout(() => {
-      setIsTyping(false);
-    }, 2000);
+    typingTimerRef.current = setTimeout(() => setIsTyping(false), 2000);
   };
 
   const handleSubmit = async (e) => {
@@ -71,139 +67,193 @@ const OGBNotes = () => {
       setStatus('No Valid Entity Found.');
       return;
     }
-
     await textChange(ogbNoteEntity, noteText, connection);
     setStatus('Note Saved!');
-    setHasUnsavedChanges(false); // Jetzt ist alles gespeichert
+    setHasUnsavedChanges(false);
     setTimeout(() => setStatus(''), 3000);
   };
 
   return (
     <NotesContainer>
-      <Title>{currentRoom}`s Notes</Title>
+      <Header>
+        <Title>{currentRoom}'s Notes</Title>
+        <InfoText>{noteText.length}/{MAX_LENGTH} Chars</InfoText>
+      </Header>
+
       <StyledForm onSubmit={handleSubmit}>
         <TextArea
-          maxLength={MAX_LENGTH}
           value={noteText}
           onChange={handleChange}
-          placeholder="Enter some Notes Here..."
+          placeholder="Write down your thoughts or tasks..."
         />
-        <InfoText>{noteText.length}/{MAX_LENGTH} Chars</InfoText>
-        <Button type="submit">Save</Button>
+        <ButtonRow>
+          <Button type="submit">💾 Save</Button>
+          {status && <StatusText>{status}</StatusText>}
+        </ButtonRow>
       </StyledForm>
-      {status && <StatusText>{status}</StatusText>}
     </NotesContainer>
   );
 };
 
 export default OGBNotes;
 
-// Styled Components
+// Styled Components mit Mobile-Fixes
 const NotesContainer = styled.div`
-  padding: 0.7rem;
+  padding: 1rem;
   border: 1px solid var(--secondary-accent);
   border-radius: 1rem;
-  width: 100%;
-  max-width: 22rem;
-  min-height: 15rem;
   background: var(--main-bg-card-color);
   color: var(--main-text-color);
   box-shadow: var(--main-shadow-art);
-  font-size: 0.95rem;
-  margin: 0.5rem auto;
-
+  width: 100%;
+  max-width: 28rem;
+  margin: 1rem auto;
   display: flex;
   flex-direction: column;
-  box-sizing: border-box;
+  gap: 0.75rem;
+  
+  /* Mobile-spezifische Fixes */
+  position: relative;
 
-  @media (max-width: 380px) {
-    padding: 0.1rem;
-    font-size: 0.85rem;
+  box-sizing: border-box;
+  
+  /* Responsive Anpassungen */
+  @media (max-width: 768px) {
+    margin: 0.5rem;
+    max-width: calc(100% - 1rem);
+    padding: 0.75rem;
+  }
+  
+  @media (max-width: 480px) {
+    margin: 0.25rem;
+    max-width: calc(100% - 0.5rem);
+    padding: 0.5rem;
+    border-radius: 0.75rem;
+  }
+`;
+
+const Header = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  
+  @media (max-width: 480px) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
   }
 `;
 
 const Title = styled.h4`
-  margin: 0 0 0.5rem 0;      /* Kein Top-Margin mehr, nur 0.5rem Bottom */
-  color: var(--main-text-color);
-  font-size: 1rem;
+  margin: 0;
+  font-size: 1.1rem;
   font-weight: 600;
-  word-break: break-word;
-
-  @media (max-width: 380px) {
-    font-size: 0.9rem;
+  color: var(--main-text-color);
+  
+  @media (max-width: 480px) {
+    font-size: 1rem;
   }
 `;
 
 const StyledForm = styled.form`
-  margin: 0; /* <- entfernt unerwünschten Außenabstand */
-  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+  box-sizing: border-box;
 `;
+
 const TextArea = styled.textarea`
   width: 100%;
-  min-height: 8rem;
+  min-height: 12rem; /* Erhöht für Desktop */
   font-size: 0.9rem;
-  padding: 0.6rem;
+  padding: 0.75rem;
   border-radius: 10px;
   border: 1px solid var(--primary-accent);
   background-color: var(--main-bg-Innercard-color);
   color: var(--main-text-color);
   resize: vertical;
   outline: none;
+  transition: border-color 0.3s, box-shadow 0.3s;
   box-sizing: border-box;
+  font-family: inherit;
 
   &:focus {
     border-color: var(--secondary-accent);
     box-shadow: 0 0 0 2px var(--secondary-accent);
   }
-
-  @media (max-width: 380px) {
-    font-size: 0.8rem;
-    padding: 0.4rem;
+  
+  @media (max-width: 768px) {
+    min-height: 10rem;
+  }
+  
+  @media (max-width: 480px) {
+    font-size: 16px; /* Verhindert Zoom auf iOS */
+    min-height: 8rem;
+    padding: 0.5rem;
   }
 `;
 
+const ButtonRow = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  
+  @media (max-width: 480px) {
+    flex-direction: column;
+    align-items: stretch;
+  }
+`;
 
 const Button = styled.button`
-  margin-top: 0.5rem;
-  padding: 0.4rem 0.75rem;
-  font-size: 0.85rem;
-  font-weight: bold;
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  font-weight: 600;
   background-color: var(--primary-button-color);
   color: var(--main-text-color);
   border: none;
   border-radius: 8px;
   cursor: pointer;
   transition: background-color 0.3s;
-  max-width: 100%;
+  touch-action: manipulation; /* Bessere Touch-Performance */
 
   &:hover {
     background-color: var(--main-hover-color);
   }
-
-  @media (max-width: 380px) {
-    font-size: 0.75rem;
-    padding: 0.3rem 0.6rem;
+  
+  &:active {
+    transform: translateY(1px);
+  }
+  
+  @media (max-width: 480px) {
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
   }
 `;
 
-
 const StatusText = styled.div`
-  margin-top: 0.4rem;
-  color: var(--main-arrow-up);
   font-size: 0.85rem;
-  font-weight: 600;
+  font-weight: 500;
+  color: var(--main-arrow-up);
+  
+  @media (max-width: 480px) {
+    margin-left: 0;
+    text-align: center;
+    font-size: 0.8rem;
+  }
 `;
 
-
-
 const InfoText = styled.div`
-  text-align: right;
-  margin-top: 0.25rem;
-  color: var(--second-text-color);
   font-size: 0.8rem;
-  word-break: break-word;
-
-  @media (max-width: 380px) {
-    font-size: 0.7rem;
+  color: var(--second-text-color);
+  text-align: right;
+  
+  @media (max-width: 480px) {
+    text-align: left;
+    font-size: 0.75rem;
   }
 `;

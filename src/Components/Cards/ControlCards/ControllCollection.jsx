@@ -6,11 +6,10 @@ import TimeCard from './TimeCard';
 import { useHomeAssistant } from "../../Context/HomeAssistantContext";
 
 
-
 const groupMappings = {
   'Main Control': {
-    includeKeywords: ['vpd', 'plant', 'mode', 'leaf', 'ambient'],
-    excludeKeywords: ['proportional', 'derivativ', 'integral', "light", "food", "days", "hydro", "Count", "Borrow", "ambient"],
+    includeKeywords: ['vpd', 'plant', 'mode', 'leaf', 'ambient',"area"],
+    excludeKeywords: ['proportional', 'derivativ', 'integral', "light", "food", "days", "hydro", "Count", "Borrow",],
   },
   "Lights": {
     includeKeywords: ['light', 'sun'],
@@ -22,11 +21,15 @@ const groupMappings = {
   },
   "Hydro Settings": {
     includeKeywords: ['pump', 'water', 'Hydro'],
-    excludeKeywords: ["Device"],
+    excludeKeywords: ["Device","feed","nutrient"],
   },
-  'Device Settings': {
-    includeKeywords: ['device'],
-    excludeKeywords: [],
+  "Feed Settings": {
+    includeKeywords: ['pump', "feed","nutrient",],
+    excludeKeywords: ["Device","water","hydro"],
+  },
+  'Special Settings': {
+    includeKeywords: [''],
+    excludeKeywords: [''],
   },
   "Targets": {
     includeKeywords: ['weight', 'min', 'max'],
@@ -38,10 +41,6 @@ const groupMappings = {
       'device', 'vpd', 'temp', 'hum', 'co2', 'light',
       'sun', 'stage', 'plant', 'leaf', 'borrow', 'weigh',
     ],
-  },
-  'P.I.D': {
-    includeKeywords: ['proportional', 'derivativ', 'integral', 'pid'],
-    excludeKeywords: [],
   },
 };
 
@@ -81,6 +80,7 @@ const ControllCollection = ({ option }) => {
     [`ogb_ownweights_${currentRoom.toLowerCase()}`]: 'Enable to define custom temperature/humidity weights (e.g. 1:1.25 in late flower).',
     [`ogb_minmax_control_${currentRoom.toLowerCase()}`]: 'Enable to set custom min/max values for controllers.',
     [`ogb_exhaust_minmax_${currentRoom.toLowerCase()}`]: 'Enable to set custom exhaust min/max values.',
+    [`ogb_intake_minmax_${currentRoom.toLowerCase()}`]: 'Enable to set custom intake min/max values.',
     [`ogb_ventilation_minmax_${currentRoom.toLowerCase()}`]: 'Enable to set custom ventilation min/max values.',
 
     [`ogb_temperatureweight_${currentRoom.toLowerCase()}`]: 'Set custom temperature weight. Requires custom weights enabled.',
@@ -92,6 +92,9 @@ const ControllCollection = ({ option }) => {
 
     [`ogb_exhaust_duty_max_${currentRoom.toLowerCase()}`]: 'Set custom max duty cycle for exhaust. Requires Exhaust Min/Max enabled.',
     [`ogb_exhaust_duty_min_${currentRoom.toLowerCase()}`]: 'Set custom min duty cycle for exhaust. Requires Exhaust Min/Max enabled.',
+    [`ogb_intake_duty_max_${currentRoom.toLowerCase()}`]: 'Set custom max duty cycle for intake. Requires Exhaust Min/Max enabled.',
+    [`ogb_intake_duty_min_${currentRoom.toLowerCase()}`]: 'Set custom min duty cycle for intake. Requires Exhaust Min/Max enabled.',
+   
     [`ogb_ventilation_duty_max_${currentRoom.toLowerCase()}`]: 'Set custom max duty cycle for ventilation. Requires Ventilation Min/Max enabled.',
     [`ogb_ventilation_duty_min_${currentRoom.toLowerCase()}`]: 'Set custom min duty cycle for ventilation. Requires Ventilation Min/Max enabled.',
 
@@ -100,10 +103,29 @@ const ControllCollection = ({ option }) => {
     [`ogb_hydropumpduration_${currentRoom.toLowerCase()}`]: 'Set how long the pump stays active. Requires Hydro Mode and cycling enabled.',
     [`ogb_hydropumpintervall_${currentRoom.toLowerCase()}`]: 'Set pump pause interval. Requires Hydro Mode and cycling enabled.',
 
+    [`ogb_hydro_retrive_${currentRoom.toLowerCase()}`]: 'Enable for Retrive Water System.',
+    [`ogb_hydroretriveintervall_${currentRoom.toLowerCase()}`]: 'Set pump pause interval for Retrive.',
+    [`ogb_hydroretriveduration_${currentRoom.toLowerCase()}`]: 'Set how long the pump stays active in Retrive',
+
+    [`ogb_feed_plan_${currentRoom.toLowerCase()}`]: 'Select your tank Feed/Plant Feed plan',
+
+    [`ogb_feed_ec_target_${currentRoom.toLowerCase()}`]: 'Set your EC Target',
+    [`ogb_feed_ph_target_${currentRoom.toLowerCase()}`]: 'Set your PH Target',
+    [`ogb_feed_tolerance_ec_${currentRoom.toLowerCase()}`]: 'Set your EC Tolerance in %',
+    [`ogb_feed_tolerance_ph_${currentRoom.toLowerCase()}`]: 'Set your PH Tolerance in %',
+
+    [`ogb_feed_nutrient_a_${currentRoom.toLowerCase()}`]: 'Set your Pump ML value it Provides on x/ML',
+    [`ogb_feed_nutrient_b_${currentRoom.toLowerCase()}`]: 'Set your Pump ML value it Provides on x/ML',
+    [`ogb_feed_nutrient_c_${currentRoom.toLowerCase()}`]: 'Set your Pump ML value it Provides on x/ML',
+    [`ogb_feed_nutrient_w_${currentRoom.toLowerCase()}`]: 'Set your Pump ML value it Provides on x/ML',
+    [`ogb_feed_nutrient_x_${currentRoom.toLowerCase()}`]: 'Set your Pump ML value it Provides on x/ML',
+    [`ogb_feed_nutrient_y_${currentRoom.toLowerCase()}`]: 'Set your Pump ML value it Provides on x/ML',
+    [`ogb_feed_nutrient_ph_${currentRoom.toLowerCase()}`]: 'Set your Pump ML value it Provides on x/ML',
+
     [`ogb_owndevicesets_${currentRoom.toLowerCase()}`]: 'Enable to manually map entities to device types. Default uses naming convention.',
     [`ogb_light_device_select_${currentRoom.toLowerCase()}`]: 'Select a light entity. Requires Own Device Sets enabled.',
     [`ogb_exhaust_device_select_${currentRoom.toLowerCase()}`]: 'Select an exhaust entity. Requires Own Device Sets enabled.',
-    [`ogb_inhaust_device_select_${currentRoom.toLowerCase()}`]: 'Select an inhaust entity. Requires Own Device Sets enabled.',
+    [`ogb_intake_device_select_${currentRoom.toLowerCase()}`]: 'Select an intake entity. Requires Own Device Sets enabled.',
     [`ogb_vents_device_select_${currentRoom.toLowerCase()}`]: 'Select a ventilation entity. Requires Own Device Sets enabled.',
     [`ogb_humidifier_device_select_${currentRoom.toLowerCase()}`]: 'Select a humidifier entity. Requires Own Device Sets enabled.',
     [`ogb_dehumidifier_device_select_${currentRoom.toLowerCase()}`]: 'Select a dehumidifier entity. Requires Own Device Sets enabled.',
@@ -111,6 +133,10 @@ const ControllCollection = ({ option }) => {
     [`ogb_cooler_device_select_${currentRoom.toLowerCase()}`]: 'Select a cooler entity. Requires Own Device Sets enabled.',
     [`ogb_climate_device_select_${currentRoom.toLowerCase()}`]: 'Select a climate device. Requires Own Device Sets enabled. (Currently not working)',
     [`ogb_waterpump_device_select_${currentRoom.toLowerCase()}`]: 'Select a water pump entity. Requires Own Device Sets enabled.',
+
+    [`ogb_grow_area_m2_${currentRoom.toLowerCase()}`]: 'Enter your m2 Space where you growing in',
+    [`ogb_ambientcontrol_${currentRoom.toLowerCase()}`]: 'Will be take care of the state of your Ambient( "NOT WORKING RIGHT NOW")',
+    [`ogb_vpd_devicedampening_${currentRoom.toLowerCase()}`]: 'Enable Device Cooldowns for any device see Wiki to check the cooldowns.',
   };
 
 
@@ -154,7 +180,6 @@ const ControllCollection = ({ option }) => {
           const cleanKey = entity.entity_id.split('.').pop(); // ✅ zuerst definieren
           const tooltip = entityTooltips[cleanKey] || '';     // ✅ dann verwenden
 
-        console.log(cleanKey,tooltip)
         return {
           title: formatTitle(entity.attributes?.friendly_name || entity.entity_id),
           entity_id: entity.entity_id,

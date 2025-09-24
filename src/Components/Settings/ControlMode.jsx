@@ -1,10 +1,177 @@
 import { useState, useEffect, useRef } from 'react';
-import styled from 'styled-components';
+import styled, { keyframes, css } from 'styled-components';
 import { useHomeAssistant } from '../Context/HomeAssistantContext';
+import LoginModal from '../Premium/LoginModal';
+import {formatDateTime} from '../../misc/formatTimeDate'
+import { usePremium, } from '../Context/OGBPremiumContext';
+import { DEV_CONFIG } from '../../config';
 
-const ControlMode = ({ coordinator, onSelectChange }) => {
-  const { roomOptions, connection, entities } = useHomeAssistant();
-  const controlOptions = ["HomeAssistant", "Node-RED", "N8N", "Self-Hosted"];
+// Premium Animations
+const shimmer = keyframes`
+  0% { background-position: -200px 0; }
+  100% { background-position: calc(200px + 100%) 0; }
+`;
+
+const glow = keyframes`
+  0%, 100% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.3), 0 0 40px rgba(255, 215, 0, 0.2); }
+  50% { box-shadow: 0 0 30px rgba(255, 215, 0, 0.5), 0 0 60px rgba(255, 215, 0, 0.3); }
+`;
+
+const pulse = keyframes`
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.8;
+  }
+`;
+
+const capitalize = (str) => {
+  if (typeof str !== 'string') return '';
+  return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+};
+
+// Cache variables for launch data
+let cachedLaunchData = null;
+let lastFetchTime = 0;
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
+const fetchLaunchDate = async () => {
+  const now = Date.now();
+  
+  // Verwende Cache wenn verfügbar und nicht abgelaufen
+  if (cachedLaunchData && (now - lastFetchTime) < CACHE_DURATION) {
+    return cachedLaunchData;
+  }
+  
+  try {
+    const response = await fetch(DEV_CONFIG.LAUNCH_API_URL, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    
+    if (!response.ok) {
+      throw new Error(`API Error: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    // Cache die Daten
+    cachedLaunchData = {
+      launchDate: new Date(data.premiumLaunch || data.launch_date || DEV_CONFIG.FALLBACK_LAUNCH_DATE),
+      isActive: data.premiumAvailable || data.is_active || false,
+      message: data.message || ''
+    };
+    lastFetchTime = now;
+    
+    return cachedLaunchData;
+  } catch (error) {
+    console.warn('Failed to fetch launch date from API:', error);
+    
+    // Fallback zu cached Daten oder Standard-Datum
+    return cachedLaunchData || {
+      launchDate: DEV_CONFIG.FALLBACK_LAUNCH_DATE,
+      isActive: false,
+      message: 'Using fallback launch date'
+    };
+  }
+};
+
+// Test User Access Check
+const checkTestUserAccess = async (user_id, email, ogbaccesstoken) => {
+  console.log(ogbaccesstoken, email, user_id)
+  try {
+    const response = await fetch(DEV_CONFIG.TEST_USER_API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        user_id,
+        email,
+        ogbaccesstoken
+      })
+    });
+    
+    if (!response.ok) {
+      throw new Error(`API Error: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    return {
+      hasAccess: data.access || false,
+      message: data.message || '',
+      userType: data.userType || 'standard'
+    };
+    
+  } catch (error) {
+    console.error('Failed to check test user access:', error);
+    return {
+      hasAccess: false,
+      message: 'Error checking user access',
+      userType: 'standard'
+    };
+  }
+};
+
+// Utility Functions
+const isDevUser = (userEmail, userId) => {
+  // Nur Dev-Modus aktiviert automatischen Zugang
+  return DEV_CONFIG.IS_DEV_MODE;
+};
+
+const isLaunchDateReached = async () => {
+  try {
+    const launchData = await fetchLaunchDate();
+    const now = new Date();
+    return now >= launchData.launchDate || launchData.isActive;
+  } catch (error) {
+    console.error('Error checking launch date:', error);
+    // Fallback zur lokalen Prüfung
+    const now = new Date();
+    return now >= DEV_CONFIG.FALLBACK_LAUNCH_DATE;
+  }
+};
+
+const getDaysUntilLaunch = async () => {
+  try {
+    const launchData = await fetchLaunchDate();
+    const now = new Date();
+    const diffTime = launchData.launchDate - now;
+    return Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
+  } catch (error) {
+    console.error('Error calculating days until launch:', error);
+    const now = new Date();
+    const diffTime = DEV_CONFIG.FALLBACK_LAUNCH_DATE - now;
+    return Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
+  }
+};
+
+const formatLaunchDate = async () => {
+  try {
+    const launchData = await fetchLaunchDate();
+    return launchData.launchDate.toLocaleDateString('de-DE', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  } catch (error) {
+    return DEV_CONFIG.FALLBACK_LAUNCH_DATE.toLocaleDateString('de-DE', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  }
+};
+
+
+const ControlMode = ({ onSelectChange }) => {
+  const { roomOptions, connection, entities} = useHomeAssistant();
+  const controlOptions = ["HomeAssistant", "Node-RED", "Self-Hosted","Premium"];
   const notificationOptions = ["Enabled", "Disabled"];
 
   const [selectedRoom, setSelectedRoom] = useState('');
@@ -12,7 +179,114 @@ const ControlMode = ({ coordinator, onSelectChange }) => {
   const [notificationMapping, setNotificationMapping] = useState(null);
   const [controlSensors, setControlSensors] = useState({});
   const [notificationSensors, setNotificationSensors] = useState({});
+  const [filteredRooms, setFilteredRooms] = useState([]);
   const initializedRef = useRef(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [showTestUserModal, setShowTestUserModal] = useState(false);
+  const [testUserData, setTestUserData] = useState({ user_id: '', email: '', ogbaccesstoken: '' });
+  const [testUserLoading, setTestUserLoading] = useState(false);
+  const [testUserMessage, setTestUserMessage] = useState('');
+  const [testUserAccess, setTestUserAccess] = useState(null);
+  
+  // Launch Date States
+  const [daysUntilLaunch, setDaysUntilLaunch] = useState(null);
+  const [isLaunched, setIsLaunched] = useState(false);
+  const [launchDateString, setLaunchDateString] = useState('');
+  const [isLoadingLaunchInfo, setIsLoadingLaunchInfo] = useState(true);
+  const [launchCountdown, setLaunchCountdown] = useState({
+    days: 0,
+    hours: 0,
+    minutes: 0,
+    seconds: 0
+  });
+
+  const {subscription, isPremium, ogbSessions, ogbMaxSessions, logout, canAddNewRoom, userEmail, userId } = usePremium();
+
+  // Load launch information
+  useEffect(() => {
+    const loadLaunchInfo = async () => {
+      try {
+        setIsLoadingLaunchInfo(true);
+        
+        const [launched, days, dateString] = await Promise.all([
+          isLaunchDateReached(),
+          getDaysUntilLaunch(),
+          formatLaunchDate()
+        ]);
+        
+        setIsLaunched(launched);
+        setDaysUntilLaunch(days);
+        setLaunchDateString(dateString);
+        
+        // Start countdown if not launched yet
+        if (!launched && days > 0) {
+          startCountdown();
+        }
+        
+      } catch (error) {
+        console.error('Failed to load launch info:', error);
+      } finally {
+        setIsLoadingLaunchInfo(false);
+      }
+    };
+    
+    loadLaunchInfo();
+  }, []);
+
+  // Countdown timer for more precise countdown
+  const startCountdown = () => {
+    const updateCountdown = async () => {
+      try {
+        const launchData = await fetchLaunchDate();
+        const now = new Date().getTime();
+        const launchTime = launchData.launchDate.getTime();
+        const distance = launchTime - now;
+
+        if (distance > 0) {
+          const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+          const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+          const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+          const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+          setLaunchCountdown({ days, hours, minutes, seconds });
+        } else {
+          setIsLaunched(true);
+        }
+      } catch (error) {
+        console.error('Countdown update failed:', error);
+      }
+    };
+
+    // Update immediately, then every second
+    updateCountdown();
+    const interval = setInterval(updateCountdown, 1000);
+    
+    // Cleanup interval on component unmount
+    return () => clearInterval(interval);
+  };
+
+  // Filter rooms that have sensor.ogb_ entities
+  useEffect(() => {
+    if (!roomOptions?.length) return;
+    
+    const roomsWithOgbSensors = roomOptions.filter(room => {
+      if (room.toLowerCase() === "ambient") return false;
+      
+      // Check if room has any sensor.ogb_ entities
+      const hasSensors = Object.keys(entities).some(entityId => 
+        entityId.startsWith('sensor.ogb_') && 
+        entityId.toLowerCase().includes(room.toLowerCase())
+      );
+      return hasSensors;
+    });
+    
+    setFilteredRooms(roomsWithOgbSensors);
+    
+    // Set first filtered room as selected if no room selected yet
+    if (!selectedRoom && roomsWithOgbSensors.length > 0) {
+      setSelectedRoom(roomsWithOgbSensors[0]);
+    }
+  }, [roomOptions, entities, selectedRoom]);
 
   // Erfasse Select-Entities und spiegle sie in Mapping
   useEffect(() => {
@@ -24,10 +298,10 @@ const ControlMode = ({ coordinator, onSelectChange }) => {
       if (!match) return;
       const type = key.includes('maincontrol') || key.includes('lightcontrol') ? 'control' : 'notifications';
       const roomKey = match[1];
-      const room = roomOptions?.find(r => r.toLowerCase() === roomKey);
+      const room = filteredRooms?.find(r => r.toLowerCase() === roomKey);
       if (!room) return;
 
-      if (type === 'control') {
+      if (type === "control") {
         newControl[room] = entity.state;
       } else {
         newNotification[room] = entity.state;
@@ -63,11 +337,11 @@ const ControlMode = ({ coordinator, onSelectChange }) => {
         );
       }
     }
-  }, [entities, roomOptions]);
+  }, [entities, filteredRooms]);
 
   // Initialisiere aus localStorage
   useEffect(() => {
-    if (!roomOptions?.length || initializedRef.current) return;
+    if (!filteredRooms?.length || initializedRef.current) return;
     initializedRef.current = true;
 
     const storedControl = JSON.parse(localStorage.getItem('controlMapping') || '{}');
@@ -75,23 +349,47 @@ const ControlMode = ({ coordinator, onSelectChange }) => {
 
     const initControl = {};
     const initNotif = {};
-    roomOptions.forEach(room => {
+    filteredRooms.forEach(room => {
       initControl[room] = storedControl[room] || controlOptions[0];
       initNotif[room] = storedNotif[room] || notificationOptions[0];
     });
 
     setControlMapping(initControl);
     setNotificationMapping(initNotif);
-    setSelectedRoom(roomOptions[0]);
-  }, [roomOptions]);
+    if (!selectedRoom && filteredRooms[0]) {
+      setSelectedRoom(filteredRooms[0]);
+    }
+  }, [filteredRooms, selectedRoom]);
 
   // Persist
   useEffect(() => {
     if (controlMapping) localStorage.setItem('controlMapping', JSON.stringify(controlMapping));
   }, [controlMapping]);
+
   useEffect(() => {
     if (notificationMapping) localStorage.setItem('notificationMapping', JSON.stringify(notificationMapping));
   }, [notificationMapping]);
+
+  const selectControl = async option => {
+    if (option === 'Premium') {
+      if (!isPremium) {
+        setShowTestUserModal(true);
+        return;
+      }
+
+      const isMaxReached = await canAddNewRoom(); 
+      console.log("canAddNewRoom result:", isMaxReached, option);
+
+      if (isMaxReached) {
+        window.alert("⚠️ Too many rooms! You cannot create more. Deactivate one first, then activate the new one");
+        return;
+      }
+    }
+    
+    setControlMapping(prev => ({ ...prev, [selectedRoom]: option }));
+    callService('maincontrol', option);
+    onSelectChange?.(selectedRoom, option, notificationMapping[selectedRoom]);
+  };
 
   if (!controlMapping || !notificationMapping) return <div>Loading...</div>;
 
@@ -110,23 +408,82 @@ const ControlMode = ({ coordinator, onSelectChange }) => {
     }
   };
 
-  const selectControl = option => {
-    setControlMapping(prev => ({ ...prev, [selectedRoom]: option }));
-    callService('maincontrol', option);
-    onSelectChange?.(selectedRoom, option, notificationMapping[selectedRoom]);
-  };
-
   const selectNotification = option => {
     setNotificationMapping(prev => ({ ...prev, [selectedRoom]: option }));
     callService('notifications', option);
     onSelectChange?.(selectedRoom, controlMapping[selectedRoom], option);
   };
 
+  const handleLogOut = async () => {
+    if (!window.confirm("Are you sure you want to log out?")) return;
+
+    try {
+      logout();
+      window.location.reload(); // ⬅ Hard refresh nach Logout
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
+  };
+
+  // Handle Test User Form
+  const handleTestUserSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!testUserData.user_id.trim() || !testUserData.email.trim()) {
+      setTestUserMessage('Please fill in all fields');
+      return;
+    }
+    
+    setTestUserLoading(true);
+    setTestUserMessage('');
+    
+    try {
+      const accessResult = await checkTestUserAccess(
+        testUserData.user_id.trim(), 
+        testUserData.email.trim(),
+        testUserData.ogbaccesstoken.trim()
+      );
+      
+      setTestUserAccess(accessResult);
+      console.log(accessResult);
+      
+      if (accessResult.hasAccess) {
+        setTestUserMessage('✅ Test access granted! You can now use Premium features.');
+        
+        // Nach 2 Sekunden Modal schließen
+        setTimeout(() => {
+          setShowTestUserModal(false);
+          setShowLoginModal(true);
+          setTestUserMessage('');
+        }, 2000);
+      } else {
+        setTestUserMessage(accessResult.message || '❌ Access denied. You are not authorized for test access.');
+      }
+    } catch (error) {
+      setTestUserMessage('❌ Error checking access. Please try again.');
+      console.error('Test user access error:', error);
+    } finally {
+      setTestUserLoading(false);
+    }
+  };
+
+  const resetTestUserModal = () => {
+    setTestUserData({ user_id: '', email: '', ogbaccesstoken: '' });
+    setTestUserMessage('');
+    setTestUserAccess(null);
+    setTestUserLoading(false);
+  };
+
   return (
     <Container>
       <SectionTitle>Room-Controller</SectionTitle>
+      {/* Dev Mode Badge */}
+      {isDevUser(userEmail, userId) && (
+        <DevBadge>DEV MODE</DevBadge>
+      )}
+      
       <TagsContainer>
-        {roomOptions.map(room => (
+        {filteredRooms.map(room => (
           <Tag key={room} selected={room === selectedRoom} onClick={() => setSelectedRoom(room)}>
             {room}
           </Tag>
@@ -136,13 +493,98 @@ const ControlMode = ({ coordinator, onSelectChange }) => {
       <InfoTitle>Control Options - {selectedRoom}</InfoTitle>
       <TagsContainer>
         {controlOptions.map(opt => (
-          <Tag
+          <ControlTag
             key={opt}
             selected={controlMapping[selectedRoom] === opt}
+            isPremium={opt === 'Premium'}
             onClick={() => selectControl(opt)}
-          >{opt}</Tag>
+          >
+            {opt === 'Premium' && (
+              <PremiumIcon>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                </svg>
+              </PremiumIcon>
+            )}
+            <span>{opt}</span>
+            {opt === 'Premium' ? <PremiumBadge>{capitalize(subscription?.plan_name)}</PremiumBadge> : <></>}
+          </ControlTag>
         ))}
       </TagsContainer>
+
+      {showLoginModal && <LoginModal selectedRoom={selectedRoom} onClose={() => setShowLoginModal(false)} />}
+      
+      {/* Test User Modal */}
+      {showTestUserModal && (
+        <TestUserModal onClick={(e) => e.target === e.currentTarget && (setShowTestUserModal(false), resetTestUserModal())}>
+          <TestUserModalContent>
+            <TestUserModalHeader>
+              <PremiumCrown>
+                <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
+                  <path d="M5 16L3 5l4.5 2.5L12 4l4.5 3.5L21 5l-2 11H5zm2.7-2h8.6l.9-5.4-2.1 1.2L12 8l-3.1 1.8-2.1-1.2L7.7 14z"/>
+                </svg>
+              </PremiumCrown>
+              <TestUserModalTitle>Test User Access</TestUserModalTitle>
+            </TestUserModalHeader>
+            
+            <p style={{ color: 'var(--main-text-color)', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
+              Premium features are launching soon! Enter your test credentials to get early access.
+            </p>
+            
+            <TestUserForm onSubmit={handleTestUserSubmit}>
+              <TestUserInput
+                type="text"
+                placeholder="user_id"
+                value={testUserData.user_id}
+                onChange={(e) => setTestUserData(prev => ({ ...prev, user_id: e.target.value }))}
+                disabled={testUserLoading}
+                required
+              />
+              <TestUserInput
+                type="email"
+                placeholder="Email"
+                value={testUserData.email}
+                onChange={(e) => setTestUserData(prev => ({ ...prev, email: e.target.value }))}
+                disabled={testUserLoading}
+                required
+              />
+              <TestUserInput
+                type="password"
+                placeholder="Access Token"
+                value={testUserData.ogbaccesstoken}
+                onChange={(e) => setTestUserData(prev => ({ ...prev, ogbaccesstoken: e.target.value }))}
+                disabled={testUserLoading}
+                required
+              />      
+              <TestUserButtonGroup>
+                <TestUserButton 
+                  type="button" 
+                  onClick={() => {setShowTestUserModal(false); resetTestUserModal();}}
+                  disabled={testUserLoading}
+                >
+                  Cancel
+                </TestUserButton>
+                <TestUserButton 
+                  type="submit" 
+                  primary
+                  disabled={testUserLoading}
+                >
+                  {testUserLoading ? 'Checking...' : 'Check Access'}
+                </TestUserButton>
+              </TestUserButtonGroup>
+            </TestUserForm>
+            
+            {testUserMessage && (
+              <TestUserMessage 
+                error={testUserMessage.includes('❌')} 
+                success={testUserMessage.includes('✅')}
+              >
+                {testUserMessage}
+              </TestUserMessage>
+            )}
+          </TestUserModalContent>
+        </TestUserModal>
+      )}
 
       <InfoTitle>Notifications - {selectedRoom}</InfoTitle>
       <TagsContainer>
@@ -154,6 +596,107 @@ const ControlMode = ({ coordinator, onSelectChange }) => {
           >{opt}</Tag>
         ))}
       </TagsContainer>
+
+      {subscription ? (
+        <PremiumPlanCard>
+          <PremiumHeader>
+            <PremiumCrown>
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M5 16L3 5l4.5 2.5L12 4l4.5 3.5L21 5l-2 11H5zm2.7-2h8.6l.9-5.4-2.1 1.2L12 8l-3.1 1.8-2.1-1.2L7.7 14z"/>
+              </svg>
+            </PremiumCrown>
+            <PremiumTitle>Premium Subscription</PremiumTitle>
+            <LogoutButton onClick={() => handleLogOut()}>Logout</LogoutButton>
+          </PremiumHeader>
+          
+          <PlanInfoGrid>
+            <InfoCard>
+              <InfoLabel>Current Plan</InfoLabel>
+              <InfoValue>{capitalize(subscription?.plan_name)}</InfoValue>
+              <InfoValue>{`${ogbSessions} / ${ogbMaxSessions} : Sessions`}</InfoValue>
+            </InfoCard>
+
+            <InfoCard>
+              <InfoLabel>Status</InfoLabel>
+              <InfoValue>
+                <StatusBadge>
+                  <StatusDot />
+                  Active
+                </StatusBadge>
+              </InfoValue>
+            </InfoCard>
+            
+            <InfoCard>
+              <InfoLabel>Started</InfoLabel>
+              <InfoValue>{formatDateTime(subscription?.current_period_start)}</InfoValue>
+            </InfoCard>
+            
+            <InfoCard>
+              <InfoLabel>Next Renewal</InfoLabel>
+              <InfoValue>{formatDateTime(subscription?.current_period_end)}</InfoValue>
+            </InfoCard>
+          </PlanInfoGrid>
+        </PremiumPlanCard>
+      ) : (
+        <NoSubWrapper>
+          <NoSubTitle>🚀 Enterprise Launch Soon</NoSubTitle>
+          <NoSubDescription>
+            Unlock exclusive features from our Premium Enterprise Version and get access to advanced functionality.
+          </NoSubDescription>
+          
+          {/* Launch Info Display */}
+          {isLoadingLaunchInfo ? (
+            <LaunchInfo>
+              <LoadingSpinner />
+              <div style={{ marginTop: '8px' }}>Loading launch information...</div>
+            </LaunchInfo>
+          ) : (
+            <>
+              {isLaunched ? (
+                <LaunchInfo>
+                  🎉 Enterprise Features are now available! Sign up today to get started.
+                </LaunchInfo>
+              ) : (
+                <>
+                  <LaunchInfo>
+                    {daysUntilLaunch === 0 
+                      ? "🚀 Enterprise Features launching today!" 
+                      : `⏰ Launch in ${daysUntilLaunch} Day${daysUntilLaunch > 1 ? "s" : ""} - at ${launchDateString}`}
+                  </LaunchInfo>
+                  
+                  {/* Detailed Countdown */}
+                  {daysUntilLaunch > 0 && (
+                    <CountdownContainer>
+                      {launchCountdown.days > 0 && (
+                        <CountdownBox>
+                          <CountdownNumber>{launchCountdown.days}</CountdownNumber>
+                          <CountdownLabel>Days</CountdownLabel>
+                        </CountdownBox>
+                      )}
+                      <CountdownBox>
+                        <CountdownNumber>{launchCountdown.hours}</CountdownNumber>
+                        <CountdownLabel>Hours</CountdownLabel>
+                      </CountdownBox>
+                      <CountdownBox>
+                        <CountdownNumber>{launchCountdown.minutes}</CountdownNumber>
+                        <CountdownLabel>Minutes</CountdownLabel>
+                      </CountdownBox>
+                      <CountdownBox>
+                        <CountdownNumber>{launchCountdown.seconds}</CountdownNumber>
+                        <CountdownLabel>Seconds</CountdownLabel>
+                      </CountdownBox>
+                    </CountdownContainer>
+                  )}
+                </>
+              )}
+            </>
+          )}
+          
+          <UpgradeButton onClick={() => window.open("https://opengrowbox.net", "_blank")}>
+            Get your Account Soon
+          </UpgradeButton>
+        </NoSubWrapper>
+      )}
     </Container>
   );
 };
@@ -165,19 +708,23 @@ const Container = styled.div`
   flex-direction: column;
   gap: 1rem;
 `;
+
 const SectionTitle = styled.h4`
   margin: 0;
   color: var(--main-text-color);
 `;
+
 const InfoTitle = styled.h5`
   margin: 0;
   color: var(--main-text-color);
 `;
+
 const TagsContainer = styled.div`
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
 `;
+
 const Tag = styled.div`
   padding: 0.5rem 1rem;
   border-radius: 25px;
@@ -186,7 +733,526 @@ const Tag = styled.div`
     selected ? 'var(--primary-accent)' : 'var(--main-bg-card-color)'};
   color: var(--main-text-color);
   box-shadow: var(--main-shadow-art);
-  transition: background 0.3s;
+  transition: all 0.3s ease;
 
-  &:hover { opacity: 0.8; }
+  &:hover { 
+    opacity: 0.8;
+    transform: translateY(-1px);
+  }
+`;
+
+const ControlTag = styled.div.withConfig({
+  shouldForwardProp: (prop) => !['isPremium', 'selected'].includes(prop),
+})`
+  padding: 0.8rem 1.25rem;
+  border-radius: 25px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  position: relative;
+  transition: all 0.3s ease;
+  overflow: hidden;
+  
+  background: ${({ selected, isPremium }) => {
+    if (isPremium && selected) {
+      return `
+        linear-gradient(135deg, 
+          #FFD700 0%, 
+          #FFA500 25%, 
+          #FF8C00 50%, 
+          #FF6347 75%, 
+          #DC143C 100%
+        )
+      `;
+    }
+    if (isPremium) {
+      return `
+        linear-gradient(135deg, 
+          rgba(255, 215, 0, 0.1) 0%, 
+          rgba(255, 165, 0, 0.1) 25%, 
+          rgba(255, 140, 0, 0.1) 50%, 
+          rgba(255, 99, 71, 0.1) 75%, 
+          rgba(220, 20, 60, 0.1) 100%
+        )
+      `;
+    }
+    return selected ? 'var(--primary-accent)' : 'var(--main-bg-card-color)';
+  }};
+  
+  color: ${({ isPremium, selected }) => 
+    isPremium && selected ? '#000' : 'var(--main-text-color)'
+  };
+  
+  border: ${({ isPremium, selected }) => {
+    if (isPremium && selected) {
+      return '2px solid rgba(255, 215, 0, 0.8)';
+    }
+    if (isPremium) {
+      return '1px solid rgba(255, 215, 0, 0.3)';
+    }
+    return 'none';
+  }};
+  
+  box-shadow: ${({ isPremium, selected }) => {
+    if (isPremium && selected) {
+      return `
+        0 0 20px rgba(255, 215, 0, 0.4),
+        0 0 40px rgba(255, 165, 0, 0.3),
+        0 4px 15px rgba(0, 0, 0, 0.2),
+        var(--main-shadow-art)
+      `;
+    }
+    if (isPremium) {
+      return `
+        0 0 10px rgba(255, 215, 0, 0.2),
+        var(--main-shadow-art)
+      `;
+    }
+    return 'var(--main-shadow-art)';
+  }};
+  
+  ${({ isPremium, selected }) => isPremium && selected && css`
+    animation: ${glow} 2s ease-in-out infinite;
+  `}
+  
+  ${({ isPremium }) => isPremium && css`
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -200px;
+      width: 200px;
+      height: 100%;
+      background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.2),
+        transparent
+      );
+      animation: ${shimmer} 3s infinite;
+    }
+  `}
+
+  &:hover { 
+    opacity: 0.9;
+    transform: translateY(-2px);
+    
+    ${({ isPremium }) => isPremium && css`
+      box-shadow: 
+        0 0 25px rgba(255, 215, 0, 0.5),
+        0 0 50px rgba(255, 165, 0, 0.3),
+        0 6px 20px rgba(0, 0, 0, 0.3);
+    `}
+  }
+  
+  &:active {
+    transform: translateY(-1px);
+  }
+`;
+
+const PremiumBadge = styled.span`
+  background: gold;
+  color: black;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: bold;
+`;
+
+const PremiumIcon = styled.span`
+  color: gold;
+  display: flex;
+  align-items: center;
+`;
+
+const LogoutButton = styled.div`
+  cursor: pointer;
+  background: linear-gradient(135deg, 
+    rgba(255, 80, 80, 0.2) 0%, 
+    rgba(255, 50, 50, 0.25) 50%, 
+    rgba(200, 0, 0, 0.2) 100%
+  );
+  border: 1px solid rgba(255, 80, 80, 0.4);
+  border-radius: 16px;
+  padding: 1.2rem 2rem;
+  color: #fff;
+  font-weight: 600;
+  text-align: center;
+  box-shadow: 0 4px 10px rgba(255, 50, 50, 0.2);
+  transition: all 0.3s ease;
+
+  &:hover {
+    background: linear-gradient(135deg, 
+      rgba(255, 100, 100, 0.4) 0%, 
+      rgba(255, 50, 50, 0.45) 50%, 
+      rgba(200, 0, 0, 0.4) 100%
+    );
+    box-shadow: 0 6px 16px rgba(255, 50, 50, 0.4);
+    transform: scale(1.03);
+  }
+
+  &:active {
+    transform: scale(0.97);
+    box-shadow: 0 3px 8px rgba(255, 50, 50, 0.3);
+  }
+`;
+
+const PremiumPlanCard = styled.div`
+  background: linear-gradient(135deg, 
+    rgba(255, 215, 0, 0.1) 0%, 
+    rgba(255, 165, 0, 0.1) 50%, 
+    rgba(255, 140, 0, 0.1) 100%
+  );
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-top: 1rem;
+  position: relative;
+  overflow: hidden;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -200px;
+    width: 200px;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 215, 0, 0.1),
+      transparent
+    );
+    animation: ${shimmer} 4s infinite;
+  }
+`;
+
+const PremiumHeader = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+`;
+
+const PremiumTitle = styled.h3`
+  color: #FFD700;
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+  flex:1;
+`;
+
+const PremiumCrown = styled.div`
+  color: #FFD700;
+  filter: drop-shadow(0 0 5px rgba(255, 215, 0, 0.5));
+  
+  svg {
+    width: 24px;
+    height: 24px;
+  }
+`;
+
+const PlanInfoGrid = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  
+  @media (max-width: 480px) {
+    grid-template-columns: 1fr;
+  }
+`;
+
+const InfoCard = styled.div`
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 215, 0, 0.2);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  backdrop-filter: blur(10px);
+`;
+
+const InfoLabel = styled.div`
+  color: rgba(255, 215, 0, 0.8);
+  font-size: 0.85rem;
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+`;
+
+const InfoValue = styled.div`
+  color: var(--main-text-color);
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom:0.3rem;
+`;
+
+const StatusBadge = styled.div`
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: linear-gradient(45deg, #4CAF50, #45a049);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  margin-top: 0.5rem;
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+`;
+
+const StatusDot = styled.div`
+  width: 8px;
+  height: 8px;
+  background: #fff;
+  border-radius: 50%;
+  animation: ${glow} 2s ease-in-out infinite;
+`;
+
+
+
+
+
+const UpgradeButton = styled.button`
+  background: linear-gradient(90deg, #f59e0b, #d97706);
+  color: white;
+  font-weight: bold;
+  border: none;
+  border-radius: 12px;
+  padding: 0.75rem 1.5rem;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+  &:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 20px rgba(251, 191, 36, 0.6);
+  }
+`;
+
+const DevBadge = styled.div`
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: #ff4444;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: bold;
+  text-transform: uppercase;
+`;
+const NoSubWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 32px 24px;
+  background:rgba(125,125,125,0.8);
+  color: white;
+  text-align: center;
+  border-radius: 12px;
+  border: 2px dashed #dee2e6;
+  position: relative;
+  overflow: hidden;
+`;
+const NoSubTitle = styled.h3`
+  color: rgba(255,185,55,1);
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0 0 8px 0;
+`;
+
+const NoSubDescription = styled.p`
+  color: rgba(255,185,55,1);
+  font-size: 14px;
+  margin: 0 0 20px 0;
+  line-height: 1.5;
+`;
+
+// Styled Components für Test User Modal
+const TestUserModal = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+`;
+
+const TestUserModalContent = styled.div`
+  background: var(--main-bg-card-color);
+  border-radius: 16px;
+  padding: 2rem;
+  max-width: 400px;
+  width: 90%;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 215, 0, 0.3);
+`;
+
+const TestUserModalHeader = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+`;
+
+const TestUserModalTitle = styled.h3`
+  color: #FFD700;
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+  flex: 1;
+`;
+
+const TestUserForm = styled.form`
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+`;
+
+const TestUserInput = styled.input`
+  padding: 0.75rem;
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--main-text-color);
+  font-size: 0.9rem;
+  
+  &:focus {
+    outline: none;
+    border-color: #FFD700;
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+  }
+  
+  &::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+  }
+`;
+
+const TestUserButtonGroup = styled.div`
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1rem;
+`;
+
+const TestUserButton = styled.button`
+  flex: 1;
+  padding: 0.75rem;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  
+  ${props => props.primary ? css`
+    background: linear-gradient(135deg, #FFD700, #FFA500);
+    color: #000;
+    
+    &:hover {
+      background: linear-gradient(135deg, #FFA500, #FF8C00);
+    }
+    
+    &:disabled {
+      background: #666;
+      color: #999;
+      cursor: not-allowed;
+    }
+  ` : css`
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--main-text-color);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    
+    &:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+  `}
+`;
+
+const TestUserMessage = styled.div`
+  padding: 0.75rem;
+  border-radius: 8px;
+  margin-top: 0.5rem;
+  text-align: center;
+  font-size: 0.9rem;
+  
+  ${props => props.error ? css`
+    background: rgba(255, 0, 0, 0.1);
+    border: 1px solid rgba(255, 0, 0, 0.3);
+    color: #ff6b6b;
+  ` : props.success ? css`
+    background: rgba(0, 255, 0, 0.1);
+    border: 1px solid rgba(0, 255, 0, 0.3);
+    color: #51cf66;
+  ` : css`
+    background: rgba(255, 165, 0, 0.1);
+    border: 1px solid rgba(255, 165, 0, 0.3);
+    color: #ffa726;
+  `}
+`;
+// New styled components for launch info
+const LaunchInfo = styled.div`
+  background: linear-gradient(135deg, rgba(255, 124, 0, 0.15), rgba(255, 165, 0, 0.15));
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  color: var(--main-text-color);
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-align: center;
+  animation: ${glow} 3s ease-in-out infinite;
+`;
+
+const CountdownContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  margin: 16px 0;
+`;
+
+const CountdownBox = styled.div`
+  background: var(--card-background);
+  border: 2px solid rgba(255, 215, 0, 0.4);
+  border-radius: 8px;
+  padding: 12px;
+  text-align: center;
+  min-width: 60px;
+  animation: ${pulse} 2s ease-in-out infinite;
+`;
+
+const CountdownNumber = styled.div`
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: #FFD700;
+  margin-bottom: 4px;
+`;
+
+const CountdownLabel = styled.div`
+  font-size: 0.7rem;
+  color: var(--secondary-text-color);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+`;
+
+const LoadingSpinner = styled.div`
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(255, 215, 0, 0.3);
+  border-top: 2px solid #FFD700;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto;
+  
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
 `;

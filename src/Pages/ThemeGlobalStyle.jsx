@@ -93,10 +93,11 @@ const GlobalStyle = createGlobalStyle`
     box-sizing: border-box;
   }
 
-  html {
-    overscroll-behavior: none;
+  html, body {
+    margin: 0;
+    padding: 0;
+    min-height: 100%;
   }
-
 
   #react-container {
     font-family: Arial, sans-serif;
@@ -104,11 +105,10 @@ const GlobalStyle = createGlobalStyle`
     overscroll-behavior: none;
     margin: 0;
     padding: 0;
-    width:100%;
-    height:100%;
+    width: 100%;
+    min-height: 100%;
     background: linear-gradient(135deg, #1a1a1a, #2c3e50);
-    background-color: linear-gradient(135deg, #1a1a1a, #2c3e50);
-    color:var(--main-text-color);
+    color: var(--main-text-color);
   }
 
   /* scrollbar */

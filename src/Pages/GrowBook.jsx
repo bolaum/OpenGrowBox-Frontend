@@ -7,8 +7,9 @@ import { useGlobalState } from '../Components/Context/GlobalContext';
 import BottomBar from '../Components/Navigation/BottomBar';
 
 import DashboardTitle from '../Components/Dashboard/DashboardTitle';
-import StrainDB from '../Components/GrowBook/StrainDB';
 import OGBNotes from '../Components/GrowBook/OGBNotes';
+import PlantLiveViewer from '../Components/GrowBook/PlantLiveViewer';
+
 const GrowBook = () => {
   // Wir holen uns den globalen Sidebar-Zustand und die Home Assistant-Verbindung/Entitäten
   const { state } = useGlobalState();
@@ -16,7 +17,7 @@ const GrowBook = () => {
   return (
     <MainContainer>
       <ContainerHeader>
-        <DashboardTitle firstText="Grow" secondText="Book"/>
+        <DashboardTitle firstText="OGB" secondText="Grow" thirdText="Book"/>
       </ContainerHeader>
         <InnerContent>
             <MainSection>
@@ -84,6 +85,7 @@ min-width:180px;
     @media (max-width: 768px) {
         width:100%;
         transition: color 0.3s ease;
+        margin-bottom:20rem;
     }
 
     @media (max-width: 480px) {

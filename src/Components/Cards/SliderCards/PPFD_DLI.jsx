@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import { useHomeAssistant } from '../../Context/HomeAssistantContext';
 import HistoryChart from '../HistoryChart'; // Importiere die HistoryChart-Komponente
 
-const PPFDCard = ({pause,resume,isPlaying}) => {
+const PPFDCard = ({ pause, resume, isPlaying }) => {
   const { entities } = useHomeAssistant();
   const [tempSensors, setTempSensors] = useState([]);
   const [selectedSensor, setSelectedSensor] = useState(null); // State für den ausgewählten Sensor
@@ -13,8 +13,6 @@ const PPFDCard = ({pause,resume,isPlaying}) => {
     return label
       .replace(/^OGB_/, '') // Entferne "OGB_"
       .replace(/_/g, ' ') // Ersetze Unterstriche mit Leerzeichen
-      .replace(/([a-z])([A-Z])/g, '$1 $2') // Leerzeichen bei CamelCase
-      .toLowerCase() // Kleinschreibung
       .replace(/\b\w/g, (c) => c.toUpperCase()); // Großbuchstaben bei Wörtern
   };
 
@@ -23,14 +21,16 @@ const PPFDCard = ({pause,resume,isPlaying}) => {
       const sensors = Object.entries(entities)
         .filter(
           ([key, entity]) =>
-            key.startsWith('sensor.') &&
-            (key.toLowerCase().includes('ppfd')) ||  (key.toLowerCase().includes('dli')) &&
+            key.startsWith('sensor.ogb_') &&
+            entity.state != 0 &&
+            !key.toLowerCase().includes('ambient') &&
+            (key.toLowerCase().includes('ppfd') || key.toLowerCase().includes('dli')) &&
             !isNaN(parseFloat(entity.state))
         )
         .map(([key, entity]) => ({
           id: key,
           value: parseFloat(entity.state),
-          unit: entity.attributes?.unit_of_measurement || 'ppm',
+          unit: entity.attributes?.unit_of_measurement || '',
           friendlyName: formatLabel(entity.attributes?.friendly_name || key),
         }));
 
@@ -40,25 +40,38 @@ const PPFDCard = ({pause,resume,isPlaying}) => {
     updatePPFDCard();
   }, [entities]);
 
-  // Funktion zur Bestimmung der Farbe basierend auf dem Temperatur-Wert
-  const getColorForValue = (value) => {
-    if (value < 10) return '#34d399'; // Grün für sehr niedrige Werte unter 10°C
-    if (value >= 10 && value <= 18) return '#00aaff'; // Blau für Werte zwischen 10 und 18°C
-    if (value > 18 && value <= 25) return '#fbbf24'; // Gelb
-    if (value > 25 && value <= 35) return '#fb923c'; // Orange
-    if (value > 35 && value <= 40) return '#ef4444'; // Rot
-    return '#7f1d1d'; // Dunkelrot für sehr hohe Werte über 40°C
+  // Farb-Logik abhängig von Sensortyp (PPFD oder DLI)
+  const getColorForSensor = (sensorId, value) => {
+    const lowerId = sensorId.toLowerCase();
+
+    if (lowerId.includes('dli')) {
+      // DLI Farben (z. B. mol/m²/day)
+      if (value < 10) return '#34d399'; // Grün
+      if (value >= 10 && value < 20) return '#00aaff'; // Blau
+      if (value >= 20 && value < 40) return '#fbbf24'; // Gelb
+      if (value >= 40 && value < 60) return '#fb923c'; // Orange
+      if (value >= 60 && value < 80) return '#ef4444'; // Rot
+      return '#7f1d1d'; // Dunkelrot
+    } else {
+      // PPFD Farben (z. B. µmol/m²/s)
+      if (value < 200) return '#34d399'; // Grün
+      if (value >= 200 && value < 600) return '#00aaff'; // Blau
+      if (value >= 600 && value < 900) return '#fbbf24'; // Gelb
+      if (value >= 900 && value < 1200) return '#fb923c'; // Orange
+      if (value >= 1200 && value < 1500) return '#ef4444'; // Rot
+      return '#7f1d1d'; // Dunkelrot
+    }
   };
 
   const handleDataBoxClick = (sensorId) => {
-    pause(); 
+    pause();
     setSelectedSensor(sensorId);
   };
 
   const closeHistoryChart = () => {
     setSelectedSensor(null);
-    if(isPlaying){
-      resume(); 
+    if (isPlaying) {
+      resume();
     }
   };
 
@@ -70,14 +83,14 @@ const PPFDCard = ({pause,resume,isPlaying}) => {
           <DataBox key={sensor.id} onClick={() => handleDataBoxClick(sensor.id)}>
             <Label>{sensor.friendlyName}</Label>
             <ValueWrapper>
-              <Value style={{ color: getColorForValue(sensor.value) }}>
+              <Value style={{ color: getColorForSensor(sensor.id, sensor.value) }}>
                 {sensor.value}
               </Value>
               <Unit>{sensor.unit}</Unit>
             </ValueWrapper>
           </DataBox>
         ))}
-        {tempSensors.length === 0 && <NoData>No Temp sensors found.</NoData>}
+        {tempSensors.length === 0 && <NoData>No PPFD/DLI sensors found.</NoData>}
       </Content>
 
       {/* Bedingtes Rendern des Modals */}
@@ -85,7 +98,7 @@ const PPFDCard = ({pause,resume,isPlaying}) => {
         <ModalOverlay onClick={closeHistoryChart}>
           <ModalContent onClick={(e) => e.stopPropagation()}>
             <HistoryChart sensorId={selectedSensor} onClose={closeHistoryChart} />
-            <CloseButton onClick={closeHistoryChart}>X</CloseButton>
+       
           </ModalContent>
         </ModalOverlay>
       )}
@@ -154,7 +167,7 @@ const ModalOverlay = styled.div`
 const ModalContent = styled.div`
   background: #fff;
   width: 65%;
-  height: 55%;
+  height: 65%;
   position: relative;
   display: flex;
   flex-direction: column;
@@ -162,13 +175,3 @@ const ModalContent = styled.div`
   justify-content: center;
 `;
 
-const CloseButton = styled.button`
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  cursor: pointer;
-  background: transparent;
-  border: none;
-  font-size: 1.2rem;
-  color: var(--main-text-color);
-`;

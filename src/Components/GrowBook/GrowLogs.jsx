@@ -7,22 +7,36 @@ const LogItem = ({ room, date, info }) => {
   const parsedInfo = typeof info === 'string' ? JSON.parse(info) : info;
   
   // Determine log type for styling
-  const getLogType = (data) => {
-    const msg = data.message?.toLowerCase() || '';
-    const action = data.Action?.toLowerCase() || '';
-    
-    if (msg.includes('vpd')) return 'vpd';
-    if (data.NightVPDHold !== undefined) return 'night-vpd'; // Neue Zeile
-    if (msg.includes('humidity')) return 'humidity';
-    if (msg.includes('temperature')) return 'temperature';
-    if (data.VPD !== undefined) return 'sensor';
-    if (data.action) return 'action';
-    if (data.Device || data.Action || data.Cycle !== undefined) return 'device';
-    return 'default';
-  };
+    const getLogType = (data) => {
+      // Wenn data ein Array ist → erstes Element nehmen
+      const entry = Array.isArray(data) ? data[0] : data;
+
+      // msg sicher extrahieren
+      const msg = entry?.message?.toLowerCase() || '';
+
+      console.log(data, msg);
+
+      if (entry.controllerType === "PID") return 'pid-controller';
+      if (entry.action) return 'action';
+      if (msg.includes('vpd')) return 'vpd';
+      if (entry.NightVPDHold !== undefined) return 'night-vpd';
+      if (msg.includes('humidity')) return 'humidity';
+      if (msg.includes('temperature')) return 'temperature';
+      if (entry.VPD !== undefined) return 'sensor';
+
+      if (entry.Device || entry.Action || entry.Cycle !== undefined) return 'device';
+      
+      return 'default';
+    };
 
 
   const logType = getLogType(parsedInfo);
+  console.log(logType)
+  function calculateUptimeFromTimestamp(timestampMs) {
+    const now = Date.now(); // aktuelle Zeit in Millisekunden
+    const uptimeSeconds = Math.floor((now - timestampMs) / 1000); // Differenz in Sekunden
+    return uptimeSeconds >= 0 ? uptimeSeconds : 0; // negative Werte abfangen
+  }
 
   // Format sensor data nicely
   const formatSensorData = (data) => {
@@ -210,7 +224,61 @@ const LogItem = ({ room, date, info }) => {
 
   // Format action data - handle both single actions and arrays of actions
   const formatActionData = (data) => {
-    // Check if data is an array (multiple actions)
+    // Handle new PID controller structure with actionData array
+   
+    if (data?.controlCommands && Array.isArray(data?.controlCommands)) {
+      
+      return (
+        <PIDControllerContainer>
+          <PIDHeader>
+            <PIDTitle>
+              <PIDIcon>🎛️</PIDIcon>
+              <PIDInfo>
+                <PIDControllerType>{data.controllerType} Controller</PIDControllerType>
+                <PIDStatus status={data.status}>
+                  <StatusDot status={data.status} />
+                  {data.status} - {data.message}
+                </PIDStatus>
+              </PIDInfo>
+            </PIDTitle>
+            <PIDMetadata>
+            <PIDUptime>
+              Uptime: {calculateUptimeFromTimestamp(data.pidStates.vpd.adaptiveHistory[0].time)}s
+            </PIDUptime>
+              <PIDActionCount>{data.controlCommands.length} Actions</PIDActionCount>
+            </PIDMetadata>
+          </PIDHeader>
+          
+          <PIDActionGrid>
+            {data.controlCommands.map((action, index) => (
+              <PIDActionItem key={index} priority={action.priority}>
+                <PIDActionHeader>
+                  <DeviceIcon device={action.device}>
+                    {getDeviceIcon(action.device)}
+                  </DeviceIcon>
+                  <PIDActionInfo>
+                    <PIDDeviceName>{action.device}</PIDDeviceName>
+                    <PIDActionBadge action={action.action}>{action.action}</PIDActionBadge>
+                  </PIDActionInfo>
+                  <PIDPriorityBadge priority={action.priority}>
+                    {action.priority}
+                  </PIDPriorityBadge>
+                </PIDActionHeader>
+                
+                <PIDActionDetails>
+                  <PIDReason>{action.reason}</PIDReason>
+                  <PIDTimestamp>
+                    {new Date(action.timestamp).toLocaleTimeString('de-DE')}
+                  </PIDTimestamp>
+                </PIDActionDetails>
+              </PIDActionItem>
+            ))}
+          </PIDActionGrid>
+        </PIDControllerContainer>
+      );
+    }
+
+    // Check if data is an array (multiple actions) - existing logic
     if (Array.isArray(data)) {
       const actions = data.filter(item => item.action);
       if (actions.length > 0) {
@@ -222,13 +290,19 @@ const LogItem = ({ room, date, info }) => {
             </ActionHeader>
             <ActionGrid>
               {actions.map((action, index) => (
-                <ActionItem key={index}>
-                  <ActionBadge action={action.action}>{action.action}</ActionBadge>
-                  <ActionCapability>{action.capability}</ActionCapability>
-                   <DeviceIcon device={action.capability}>
-                    {getDeviceIcon(action.capability)}
-                  </DeviceIcon>
-                </ActionItem>
+              <ActionItem key={index}>
+              <ActionBadge action={action.action}>
+                {action.action}
+                <ActionPriority priority={action.priority}>Prio: {action.priority}</ActionPriority>
+              </ActionBadge>
+
+                <ActionCapability>{action.capability}</ActionCapability>
+                <DeviceIcon device={action.capability}>
+                  {getDeviceIcon(action.capability)}
+                </DeviceIcon>
+           
+              </ActionItem>
+
               ))}
             </ActionGrid>
           </MultiActionContainer>
@@ -236,7 +310,7 @@ const LogItem = ({ room, date, info }) => {
       }
     }
     
-    // Single action
+    // Single action - existing logic
     if (data.action) {
       return (
         <SingleActionContainer>
@@ -311,8 +385,8 @@ const GrowLogs = () => {
 
     const handleNewEvent = (event) => {
       // Debug: Log the entire event structure
-      console.log('Full event:', event);
-      console.log('Event data:', event.data);
+       //console.log('Full event:', event);
+       //console.log('Event data:', event.data);
       
       // Try multiple ways to find the room name
       const findRoomName = (data) => {
@@ -481,6 +555,7 @@ const LogItemContainer = styled.div`
   flex-direction: column;
   background: ${props => {
     switch(props.logType) {
+      case 'pid-controller': return 'linear-gradient(135deg, rgba(116, 75, 162, 0.1) 0%, rgba(74, 144, 226, 0.1) 100%)'; // New
       case 'sensor': return 'linear-gradient(135deg, rgba(34, 193, 195, 0.1) 0%, rgba(253, 187, 45, 0.1) 100%)';
       case 'action': return 'linear-gradient(135deg, rgba(255, 94, 77, 0.1) 0%, rgba(255, 154, 0, 0.1) 100%)';
       case 'device': return 'linear-gradient(135deg, rgba(116, 75, 162, 0.1) 0%, rgba(74, 144, 226, 0.1) 100%)';
@@ -746,9 +821,9 @@ const ActionBadge = styled.div`
   background: ${props => {
     switch(props.action?.toLowerCase()) {
       case 'reduce': 
-        return 'linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%)';
+        return 'linear-gradient(135deg, #00ff6b 0%, #00aaff 100%)'; // Grün → Blau
       case 'increase': 
-        return 'linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%)';
+        return 'linear-gradient(135deg, #ff7f00 0%, #ffff00 50%)'; // Orange → Rot
       case 'maintain': 
         return 'linear-gradient(135deg, #45b7d1 0%, #96c93d 100%)';
       case 'start':
@@ -829,6 +904,19 @@ const DeviationItem = styled.div`
   border-radius: 8px;
   min-width: 120px;
 `;
+
+const priorityColors = {
+  high: "red",
+  medium: "orange",
+  low: "green",
+};
+
+const ActionPriority = styled.div`
+  font-size: 0.6rem;
+  color: ${({ priority }) => priorityColors[priority] || "orange"};
+`;
+
+
 
 const DeviationLabel = styled.div`
   color: var(--second-text-color);
@@ -1194,4 +1282,262 @@ const StatusText = styled.div`
   font-size: 1rem;
   font-weight: 600;
   text-transform: capitalize;
+`;
+
+const PIDControllerContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  background: linear-gradient(135deg, rgba(116, 75, 162, 0.1) 0%, rgba(74, 144, 226, 0.1) 100%);
+  border: 1px solid rgba(116, 75, 162, 0.3);
+  border-radius: 12px;
+  padding: 1rem;
+`;
+
+const PIDHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+`;
+
+const PIDTitle = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+`;
+
+const PIDIcon = styled.div`
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  box-shadow: 0 4px 15px rgba(116, 75, 162, 0.3);
+  transition: all 0.3s ease;
+  
+  &:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 20px rgba(116, 75, 162, 0.4);
+  }
+`;
+
+const PIDInfo = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+`;
+
+const PIDControllerType = styled.div`
+  color: var(--main-text-color);
+  font-size: 1.1rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+`;
+
+const PIDStatus = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: ${props => {
+    switch(props.status) {
+      case 'success': return '#2ecc71';
+      case 'warning': return '#f1c40f';
+      case 'error': return '#e74c3c';
+      default: return 'var(--second-text-color)';
+    }
+  }};
+  font-size: 0.85rem;
+  font-weight: 500;
+`;
+
+const StatusDot = styled.div`
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: ${props => {
+    switch(props.status) {
+      case 'success': return '#2ecc71';
+      case 'warning': return '#f1c40f';
+      case 'error': return '#e74c3c';
+      default: return 'var(--second-text-color)';
+    }
+  }};
+  box-shadow: 0 0 8px ${props => {
+    switch(props.status) {
+      case 'success': return 'rgba(46, 204, 113, 0.5)';
+      case 'warning': return 'rgba(241, 196, 15, 0.5)';
+      case 'error': return 'rgba(231, 76, 60, 0.5)';
+      default: return 'rgba(255, 255, 255, 0.3)';
+    }
+  }};
+`;
+
+const PIDMetadata = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.25rem;
+`;
+
+const PIDUptime = styled.div`
+  color: var(--second-text-color);
+  font-size: 0.75rem;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+`;
+
+const PIDActionCount = styled.div`
+  color: var(--primary-accent);
+  font-size: 0.8rem;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-weight: 600;
+`;
+
+const PIDActionGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 0.75rem;
+`;
+
+const PIDActionItem = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid ${props => {
+    switch(props.priority) {
+      case 'high': return 'rgba(231, 76, 60, 0.4)';
+      case 'medium': return 'rgba(241, 196, 15, 0.4)';
+      case 'low': return 'rgba(46, 204, 113, 0.4)';
+      default: return 'rgba(255, 255, 255, 0.1)';
+    }
+  }};
+  border-radius: 10px;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: ${props => {
+      switch(props.priority) {
+        case 'high': return '#e74c3c';
+        case 'medium': return '#f1c40f';
+        case 'low': return '#2ecc71';
+        default: return 'var(--primary-accent)';
+      }
+    }};
+  }
+  
+  &:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+`;
+
+const PIDActionHeader = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+`;
+
+const PIDActionInfo = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+`;
+
+const PIDDeviceName = styled.div`
+  color: var(--main-text-color);
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-transform: capitalize;
+`;
+
+const PIDActionBadge = styled.div`
+  display: inline-block;
+  padding: 0.3rem 0.8rem;
+  border-radius: 15px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background: ${props => {
+    switch(props.action?.toLowerCase()) {
+      case 'reduce': 
+        return 'linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%)';
+      case 'increase': 
+        return 'linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%)';
+      case 'maintain': 
+        return 'linear-gradient(135deg, #45b7d1 0%, #96c93d 100%)';
+      case 'start':
+        return 'linear-gradient(135deg, #96c93d 0%, #02aab0 100%)';
+      case 'stop':
+        return 'linear-gradient(135deg, #ff8a80 0%, #ff5722 100%)';
+      default: 
+        return 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+    }
+  }};
+  color: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+`;
+
+const PIDPriorityBadge = styled.div`
+  padding: 0.4rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  background: ${props => {
+    switch(props.priority) {
+      case 'high': 
+        return 'linear-gradient(135deg, #e74c3c 0%, #c0392b 100%)';
+      case 'medium': 
+        return 'linear-gradient(135deg, #f1c40f 0%, #f39c12 100%)';
+      case 'low': 
+        return 'linear-gradient(135deg, #2ecc71 0%, #27ae60 100%)';
+      default: 
+        return 'linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%)';
+    }
+  }};
+  color: white;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+`;
+
+const PIDActionDetails = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding-left: 0.25rem;
+`;
+
+const PIDReason = styled.div`
+  color: var(--main-text-color);
+  font-size: 0.85rem;
+  opacity: 0.9;
+  font-style: italic;
+`;
+
+const PIDTimestamp = styled.div`
+  color: var(--second-text-color);
+  font-size: 0.75rem;
+  opacity: 0.7;
 `;

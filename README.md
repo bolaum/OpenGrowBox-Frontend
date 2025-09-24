@@ -198,5 +198,5 @@ If you run into issues or have questions, please open an issue on GitHub or join
 ---
 
 ## 📝 License
-
-This project is licensed under the [GPL-3.0 license](LICENSE).
+This project is licensed under the [OGBCL license](LICENSE).
+Additional premium features are only provided to paying customers and are not part of this project. They are subject to a separate proprietary license.

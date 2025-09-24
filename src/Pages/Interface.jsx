@@ -41,7 +41,6 @@ const Interface = () => {
       const storageKey = import.meta.env.PROD ? 'haToken' : 'devToken';
       const localToken = localStorage.getItem(storageKey);
 
-      // Simulierte Ladezeit
       await new Promise((res) => setTimeout(res, loadingDuration));
 
       if (isValidJWT(localToken)) {
@@ -67,12 +66,12 @@ const Interface = () => {
         <ProgressCircle viewBox="0 0 100 100" width="120" height="120">
           <defs>
           <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#00ff88" />     {/* frisches Chlorophyll-Grün */}
-            <stop offset="25%" stopColor="#a4ff00" />    {/* lebendiges Gelbgrün */}
-            <stop offset="50%" stopColor="#ffe600" />    {/* Sonnenblumengelb */}
-            <stop offset="75%" stopColor="#ff7b00" />    {/* Reifeorange */}
-            <stop offset="90%" stopColor="#ff2a2a" />    {/* Tiefrot */}
-            <stop offset="100%" stopColor="#8b4513" />   {/* Erdreifes Braun */}
+            <stop offset="0%" stopColor="#00ff88" />
+            <stop offset="25%" stopColor="#a4ff00" />
+            <stop offset="50%" stopColor="#ffe600" /> 
+            <stop offset="75%" stopColor="#ff7b00" />
+            <stop offset="90%" stopColor="#ff2a2a" />
+            <stop offset="100%" stopColor="#8b4513" />
         </linearGradient>
           </defs>
           <Progress duration={loadingSeconds} />

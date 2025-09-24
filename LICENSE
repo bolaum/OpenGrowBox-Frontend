@@ -1,0 +1,116 @@
+# OpenGrowBox Community License (OGBCL) Version 1.0
+
+## 1. Definitions
+- **Software**  
+  The OpenGrowBox codebase, including source code, binaries, documentation, modules, scripts, and any updates, modifications or derivative works.
+- **Licensee**  
+  Any individual or entity that obtains, uses, modifies or distributes the Software under this License.
+- **Non-Commercial Use**  
+  Any use of the Software for personal, educational, academic, research or other non-profit purposes, where **no direct or indirect revenue, fee or other financial benefit** is derived.
+- **Commercial Use**  
+  Any use of the Software resulting in **direct or indirect financial gain**, including but not limited to:
+  - Selling or sublicensing the Software or derivative works  
+  - Offering the Software as a hosted service, SaaS or cloud solution  
+  - Charging for support, maintenance, consulting or training related to the Software  
+  - Embedding the Software in products or services for which a fee is charged  
+  - Generating advertising, sponsorship or any form of revenue tied to the Software  
+- **Distribution**  
+  Conveying, transferring, publishing or making the Software (in source or binary form) available to third parties by any means.
+- **Modification**  
+  Any change, enhancement, adaptation or derivative work based on the Software.
+- **API Access**  
+  Interaction with OpenGrowBox–hosted services via application programming interfaces (APIs), whether invoked by the Software or otherwise.
+- **Premium Features**  
+  Additional, fee-based functionality or services of OpenGrowBox, accessible only via authenticated API calls under a valid subscription or license.
+
+---
+
+## 2. License Grant (Non-Commercial Use Only)
+OpenGrowBox hereby grants Licensee a worldwide, royalty-free, non-exclusive, perpetual license to:
+1. **Use** the Software for Non-Commercial Use.  
+2. **Modify** the Software and create derivative works for Non-Commercial Use.  
+3. **Distribute** copies of the Software (original or modified, in source or binary form) to third parties **only** for Non-Commercial Use.
+
+All redistributed copies or derivative works **must**:
+- Include this entire LICENSE.md unmodified.
+- Retain all original copyright, author and license notices.
+- Be licensed under this same OGBCL.
+
+---
+
+## 3. Commercial Use Prohibition & Licensing
+1. **Commercial Use Forbidden**  
+   Any Commercial Use of the Software is strictly prohibited **unless** Licensee first obtains a separate, written **Commercial License Agreement** from OpenGrowBox, **or qualifies for the Cannabis Social Club exception** (see point 2).  
+
+2. **Cannabis Social Club Exception**  
+   Cannabis Social Clubs that use the Software **exclusively for internal cultivation purposes** are permitted to use the Software even if it results in indirect financial benefit.  
+   - The Software may **not** be sold, hosted, provided as SaaS, offered for support or consulting, or otherwise monetized.  
+   - This exception applies **only** when the Software is used internally by the organization for growing purposes and **not** to provide technical services to third parties.  
+
+3. **Commercial Licensing**  
+   For any other form of Commercial Use, including hosting, sale, SaaS, or monetized services, a separate, written **Commercial License Agreement** from OpenGrowBox is required.  
+   Contact: **info@opengrowbox.net**  
+   A signed Commercial License Agreement, and any associated fees, must be in place **before** engaging in any Commercial Use.  
+
+4. **No Implicit Rights**  
+   This License does **not** grant any rights to use, sell, host, distribute or monetize the Software in any commercial context outside the Cannabis Social Club exception.
+
+
+---
+
+## 4. API Access & Premium Features
+- The Software may include client code to call OpenGrowBox-hosted APIs providing Premium Features.  
+- Such API calls **require** a valid subscription or API token issued by OpenGrowBox.  
+- This License does **not** grant any rights to Premium Features or subscription services; access is governed by separate Terms of Service and subscription agreements.
+
+---
+
+## 5. Enforcement & Sanctions
+1. **Termination**  
+   All rights granted under this License are **automatically and immediately terminated** upon any breach of its terms (e.g., unauthorized Commercial Use).
+2. **Cease & Desist**  
+   Upon termination, Licensee must immediately cease all use, reproduction, distribution and modification of the Software, and destroy all copies in their possession.
+3. **Legal Remedies**  
+   OpenGrowBox reserves the right to pursue injunctive relief, damages, and all other legal remedies available under applicable law for any unauthorized Commercial Use or other breach.
+4. **Fees & Damages**  
+   Licensee may be liable for actual damages, lost licensing revenue, legal costs, and any statutory penalties resulting from unauthorized use.
+
+---
+
+## 6. Warranty & Liability
+- **No Warranty**  
+  The Software is provided “AS IS,” without any warranty of any kind, express or implied.
+- **Limitation of Liability**  
+  In no event shall OpenGrowBox be liable for any direct, indirect, incidental, special, or consequential damages, arising from use or inability to use the Software.
+- **Use at Your Own Risk**  
+  Use of the Software is at the Licensee’s own risk and expense.
+---
+
+## 7. Contributions
+
+### 7.1 Small Contributions
+- **Definition**: Minor changes such as typo fixes, documentation improvements, small code refactorings, or trivial bug fixes that do not add significant new features.  
+- **License**: Small Contributions are licensed under this OGBCL. OpenGrowBox may use, modify, and distribute these Contributions under any license (including a Commercial License) without restriction.
+
+### 7.2 Large Contributions
+- **Definition**: Substantial additions or new features, major refactorings, architectural changes, or significant modules that extend the Software’s core functionality.  
+- **License**: Large Contributions are licensed under this OGBCL **for non-commercial use only**, and OpenGrowBox is granted a perpetual, worldwide, royalty-free, irrevocable, sublicensable license to:
+  1. Use, reproduce, modify, and distribute the Contribution under this OGBCL.  
+  2. Combine, integrate, or bundle the Contribution with proprietary or commercial modules and services (including Premium Features) under separate Commercial Licenses.  
+  3. Re-license the Contribution (in whole or part) under different terms (including a Commercial License) at OpenGrowBox’s discretion.
+
+- **Warranties**: Contributors of Large Contributions represent that they have full authority to grant these rights, and that their Contributions do not infringe any third-party rights or contain malicious code.
+
+---
+
+## 8. Miscellaneous
+- **Separation of Components**  
+  Any proprietary or premium components (server-side services, closed-source modules) remain under separate, closed-source licenses and are **not** subject to this OGBCL.
+- **Governing Law & Jurisdiction**  
+  This License is governed by the laws of Germany. Exclusive venue for any disputes is the courts in Berlin, Germany.
+- **Entire Agreement**  
+  This LICENSE.md constitutes the entire agreement for the non-commercial use of the Software and supersedes any prior communications or agreements.
+
+---
+
+© 2025 OpenGrowBox. All rights reserved.  

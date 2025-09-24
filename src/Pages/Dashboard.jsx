@@ -7,7 +7,7 @@ import DashboardSlider from '../Components/Dashboard/DashboardSlider';
 import BottomBar from '../Components/Navigation/BottomBar';
 import { useHomeAssistant } from '../Components/Context/HomeAssistantContext';
 import RoomSelectCard from '../Components/Cards/RoomSelectCard';
-
+import GrowMetrics from '../Components/Dashboard/GrowMetrics'
 const Dashboard = () => {
   const { currentRoom, entities } = useHomeAssistant();
   const [co2Sensors, setCo2Sensors] = useState([]);
@@ -39,31 +39,34 @@ const Dashboard = () => {
   return (
     <MainContainer>
       <ContainerHeader>
-        <DashboardTitle firstText="Dash" secondText="Board" />
+        <DashboardTitle firstText="OGB" secondText="Grow" thirdText="Monitor"/>
       </ContainerHeader>
+              <RoomSelectCard />
       <InnerContent
         as={motion.div}
         initial={false}
         transition={{ type: 'spring', stiffness: 200, damping: 20 }}
       >
+
         <MainSection>
-          <RoomSelectCard />
-          <DashboardChart sensorId={avgTempSensor} title="Avg Temp" unit="°C" />
-          <DashboardChart sensorId={avgHumSensor} title="Avg Humidity" unit="%" />
+          <GrowMetrics room={currentRoom}/>
         </MainSection>
         <DataSection>
           <DashboardChart sensorId={vpdSensor} title="VPD" unit="kPa" />
+          <DashboardChart sensorId={avgTempSensor} title="Avg Temp" unit="°C" />
+          <DashboardChart sensorId={avgHumSensor} title="Avg Humidity" unit="%" />
+
           {co2Sensors && co2Sensors.length > 0 && 
-            co2Sensors.map((sensor) => (
-              <DashboardChart
-                key={sensor.id}
-                sensorId={sensor.entity_id}
-                title="CO₂"
-                unit={sensor.unit}
-              />
-            ))
+          co2Sensors.map((sensor) => (
+            <DashboardChart
+              key={sensor.id}
+              sensorId={sensor.entity_id}
+              title="CO₂"
+              unit={sensor.unit}
+            />
+          ))
           }
-          <DashboardSlider />
+
         </DataSection>
       </InnerContent>
       <BottomBar />
@@ -107,9 +110,10 @@ const MainSection = styled.section`
   flex-direction: column;
   align-items: center;
   gap: 1rem;
-  width: 35%;
+  width: 50%;
   height: 100%;
   min-width: 180px;
+  margin-left:1rem;
   @media (max-width: 1024px) {
     transition: color 0.3s ease;
   }
@@ -126,8 +130,9 @@ const DataSection = styled.section`
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  width: 60vw;
+  width: 50%;
   height: 92%;
+
   min-width: 180px;
   @media (max-width: 1024px) {
     transition: color 0.3s ease;

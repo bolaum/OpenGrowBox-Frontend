@@ -1,28 +1,18 @@
 import styled from 'styled-components';
 import { useGlobalState } from '../Context/GlobalContext';
-import { useNavigate } from 'react-router-dom';
 import SettingsFooter from './SettingsFooter';
 import { useHomeAssistant } from '../Context/HomeAssistantContext';
 import ControlMode from './ControlMode';
-import tokenSetup from '../../misc/tokenChange';
+
 // Definiere deine Themes mit den entsprechenden CSS-Variablen
 
 
 const SettingsPanel = () => {
   const { state, setDeep } = useGlobalState();
-  const {roomOptions,connection} = useHomeAssistant()
   const currentTheme = state.Design.theme;
   const availableThemes = state.Design.availableThemes;
 
   // Funktion, um das Theme anzuwenden, indem CSS-Variablen gesetzt werden
-  const navigate = useNavigate();
-   
-  const clearAppStates = async () => {
-    localStorage.removeItem("globalOGBState")
-    setDeep('Conf.haToken',null);
-    await tokenSetup("text.ogb_accesstoken","Enter New Token",connection)
-    navigate('/setup')
-  }
 
   const ChangeTheme = (themeName) => {
     setDeep('Design.theme', themeName)
@@ -45,12 +35,8 @@ const SettingsPanel = () => {
       </ThemeList>
       {/* Weitere Einstellungen (z.B. Mobile Notification) können hier folgen */}
       <MenuControl>
-
-
         <ControlMode/>
 
-        <Title>Config</Title>
-        <MenuItem onClick={clearAppStates}>🗑️ Clear App State</MenuItem>
         <MenuFooter>
             <SettingsFooter/>
         </MenuFooter>

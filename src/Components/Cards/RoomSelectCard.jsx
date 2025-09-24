@@ -6,24 +6,34 @@ import { motion } from 'framer-motion';
 import { useHomeAssistant } from '../Context/HomeAssistantContext';
 
 const RoomSelectCard = ({title}) => {
-  const { entities, currentRoom, currenRoomOptions, connection } = useHomeAssistant();
+  const { entities, currentRoom, connection } = useHomeAssistant();
   const [roomOptions, setRoomOptions] = useState([]);
   const [selectedRoom, setSelectedRoom] = useState(currentRoom);
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
 
-
-
   useEffect(() => {
-    const rooms = Object.entries(entities)
-      .filter(([key]) => key.startsWith('select.ogb_rooms'))
-      .flatMap(([_, entity]) => entity.attributes?.options || []);
-    setRoomOptions([...new Set(rooms)]);
+    // Hole alle verfügbaren Räume aus der select.ogb_rooms Entity
+    const allRooms = Object.entries(entities)
+      .filter(([key]) => key.startsWith("select.ogb_rooms"))
+      .flatMap(([_, entity]) => entity.attributes?.options || [])
+      .filter(r => r.toLowerCase() !== "ambient");
+
+    // Filtere nur Räume, die auch sensor.ogb_ Entities haben
+    const roomsWithSensors = allRooms.filter(room => {
+      // Prüfe ob es für diesen Raum mindestens einen sensor.ogb_ gibt
+      const hasSensors = Object.keys(entities).some(entityId => 
+        entityId.startsWith('sensor.ogb_') && 
+        entityId.toLowerCase().includes(room.toLowerCase())
+      );
+      return hasSensors;
+    });
+
+    setRoomOptions([...new Set(roomsWithSensors)]);
     setSelectedRoom(currentRoom);
   }, [entities, currentRoom]);
 
   const handleRoomChange = async (selectedRoom) => {
-
     const roomEntity = Object.entries(entities).find(([key]) =>
       key.startsWith('select.ogb_rooms')
     );
@@ -40,8 +50,7 @@ const RoomSelectCard = ({title}) => {
           },
         });
         setSelectedRoom(selectedRoom);
-        setIsOpen(false); // Schließt das Menü
-
+        setIsOpen(false);
       } catch (error) {
         console.error('Error updating room:', error);
       }
@@ -67,7 +76,6 @@ const RoomSelectCard = ({title}) => {
         <DropdownHeader onClick={() => setIsOpen(!isOpen)}>
           {selectedRoom}
           <FaChevronDown />
-          {currenRoomOptions}
         </DropdownHeader>
         
         <motion.div
@@ -78,7 +86,6 @@ const RoomSelectCard = ({title}) => {
           {isOpen && (
             <DropdownList>
               {roomOptions.map((room, index) => (
-                // Hier wird onMouseDown anstelle von onClick verwendet
                 <DropdownItem key={index} onMouseDown={() => handleRoomChange(room)}>
                   {room}
                 </DropdownItem>
@@ -96,6 +103,7 @@ export default RoomSelectCard;
 
 const InfoContainer = styled.div`
   width: 80%;
+  max-width:25rem;
   text-align: center;
   color: white;
 `;

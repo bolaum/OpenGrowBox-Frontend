@@ -23,10 +23,24 @@ function mountWithShadow(container) {
     ::part(toggle-background) {
       background-color: #4caf50;
     }
+
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      min-height: 100%;
+    }
+
     #react-container {
+      font-family: Arial, sans-serif;
+      font-size: 1rem;
+      overscroll-behavior: none;
+      margin: 0;
+      padding: 0;
       width: 100%;
-      height: 100%;
-      font-family: inherit;
+      min-height: 100%;
+      background: linear-gradient(135deg, #1a1a1a, #2c3e50);
+      color: var(--main-text-color);
     }
   `;
   shadowRoot.appendChild(style);
@@ -72,10 +86,21 @@ if (import.meta.env.DEV) {
           font-family: Arial, sans-serif;
           }
         
+        html, body {
+          margin: 0;
+          padding: 0;
+          min-height: 100%;
+        }
         #react-container {
+          font-family: Arial, sans-serif;
+          font-size: 1rem;
+          overscroll-behavior: none;
+          margin: 0;
+          padding: 0;
           width: 100%;
-          height: 100%;
-          font-family: inherit;
+          min-height: 100%;
+          background: linear-gradient(135deg, #1a1a1a, #2c3e50);
+          color: var(--main-text-color);
         }
       `;
       this.shadowRoot.appendChild(style);

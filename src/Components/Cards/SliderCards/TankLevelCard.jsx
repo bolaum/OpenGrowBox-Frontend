@@ -4,28 +4,23 @@ import { useHomeAssistant } from '../../Context/HomeAssistantContext';
 import formatLabel from '../../../misc/formatLabel';
 import HistoryChart from '../HistoryChart';
 
-const PHCard = ({pause,resume,isPlaying}) => {
+const TankLevelCard = ({pause,resume,isPlaying}) => {
   const { entities } = useHomeAssistant();
-  const [phSensors, setPHSensors] = useState([]);
-  const [selectedSensor, setSelectedSensor] = useState(null); // State für den ausgewählten Sensor
+  const [tankLevelSensors, setTankLevelSensors] = useState([]);
+  const [selectedSensor, setSelectedSensor] = useState(null);
 
   useEffect(() => {
-    const updatePHCard = () => {
+    const updateTankLevelCard = () => {
       const sensors = Object.entries(entities)
       .filter(([key, entity]) => {
         const rawValue = parseFloat(entity.state);
         const id = key.toLowerCase();
 
-        // Allowed sensor patterns
+        // Tank level sensor patterns
         const patterns = [
-          /water/,                // Matches anywhere
-          /wasser/,               // Matches anywhere
-          /_ph($|[^a-z])/,        // Exact _ph
-          /_sal($|[^a-z])/,       // Exact _sal
-          /_oxidation($|[^a-z])/, // Exact _oxidation
-          /_orp($|[^a-z])/,       // Exact _orp
-          /_tds($|[^a-z])/,       // Exact _tds
-          /_ec($|[^a-z])/,        // Exact _ec
+          /tank_level($|[^a-zA-Z])/,
+          /water_level($|[^a-zA-Z])/,
+          /reservoir_level($|[^a-zA-Z])/,
         ];
 
         const matchesSensorType = patterns.some((pattern) => pattern.test(id));
@@ -36,13 +31,12 @@ const PHCard = ({pause,resume,isPlaying}) => {
           !id.includes('phone') &&
           !id.includes('mqtt') &&
           !id.includes('connect') &&
-          !isNaN(rawValue) &&
-          rawValue !== 0
+          !isNaN(rawValue)
         );
       })
         .map(([key, entity]) => {
           const rawValue = parseFloat(entity.state);
-          const unit = entity.attributes?.unit_of_measurement || 'mS/cm';
+          const unit = entity.attributes?.unit_of_measurement || '%';
           return {
             id: key,
             value: rawValue,
@@ -51,49 +45,43 @@ const PHCard = ({pause,resume,isPlaying}) => {
           };
         });
 
-      setPHSensors(sensors);
+      setTankLevelSensors(sensors);
     };
 
-    updatePHCard();
+    updateTankLevelCard();
   }, [entities]);
 
   const getColorForValue = (value, unit) => {
     const unitLower = unit.toLowerCase();
   
-    // Farben für pH-Werte
-    if (unitLower.includes('ph')) {
-      if (value < 4.5) return '#ef4444'; // Sehr sauer (Rot)
-      if (value >= 4.5 && value < 5.5) return 'rgba(230, 63, 12, 0.85)'; 
-      if (value >= 5.5 && value < 6.0) return 'rgba(230, 212, 12, 0.85)'; 
-      if (value >= 6.0 && value <= 7.0) return 'rgba(85, 230, 12, 0.85)';
-      if (value > 7.0 && value <= 7.5) return 'rgba(197, 230, 12, 0.85)'; 
-      if (value > 7.5 && value <= 8.5) return 'rgba(12, 170, 230, 0.85)';
-      return '#60a5fa'; // Stark alkalisch (Dunkelblau)
+    // Farben für Prozent-Werte (Tank Level)
+    if (unitLower.includes('%')) {
+      if (value <= 10) return '#ef4444'; // Kritisch niedrig (Rot)
+      if (value > 10 && value <= 25) return 'rgba(230, 63, 12, 0.85)'; // Niedrig (Orange-Rot)
+      if (value > 25 && value <= 50) return 'rgba(230, 212, 12, 0.85)'; // Medium (Gelb)
+      if (value > 50 && value <= 75) return 'rgba(197, 230, 12, 0.85)'; // Gut (Gelb-Grün)
+      return 'rgba(85, 230, 12, 0.85)'; // Voll (Grün)
     }
-  
-    // Farben für EC/TDS/Salinity
-    if (unitLower.includes('ms/cm') || unitLower.includes('ms/us') || unitLower.includes('salinity')) {
-      if (value < 100) return '#60a5fa'; // Sehr niedrige Leitfähigkeit (Dunkelblau)
-      if (value >= 100 && value <= 500) return 'rgba(85, 230, 12, 0.85)';
-      if (value > 500 && value <= 1500) return 'rgba(197, 230, 12, 0.85)'; 
-      if (value > 1500 && value <= 2500) return 'rgba(230, 212, 12, 0.85)';
-      if (value > 2500) return 'rgba(230, 63, 12, 0.85)'; 
+
+    // Farben für Liter-Werte
+    if (unitLower.includes('l') || unitLower.includes('liter')) {
+      if (value <= 50) return '#ef4444'; // Niedrig
+      if (value > 50 && value <= 150) return 'rgba(230, 63, 12, 0.85)';
+      if (value > 150 && value <= 300) return 'rgba(230, 212, 12, 0.85)';
+      if (value > 300 && value <= 500) return 'rgba(197, 230, 12, 0.85)';
+      return 'rgba(85, 230, 12, 0.85)';
     }
-    if (unitLower.includes('ppm')) {
-        if (value < 50) return '#60a5fa'; // Sehr niedrige Leitfähigkeit (Dunkelblau)
-        if (value >= 50 && value <= 250) return 'rgba(85, 230, 12, 0.85)';
-        if (value > 250 && value <= 750) return 'rgba(197, 230, 12, 0.85)'; 
-        if (value > 750 && value <= 1250) return 'rgba(230, 212, 12, 0.85)';
-        if (value > 1250) return 'rgba(230, 63, 12, 0.85)'; 
-      }
-    if (unitLower.includes('celcius') ||unitLower.includes('°C') ||  unitLower.includes('tds') || unitLower.includes('ec') || unitLower.includes('salinity')) {
-        if (value < 10) return '#60a5fa'; // Sehr niedrige Leitfähigkeit (Dunkelblau)
-        if (value >= 10 && value <= 15) return 'rgba(12, 226, 230, 0.86)'; 
-        if (value > 15 && value <= 20) return 'rgba(12, 230, 165, 0.85)'; 
-        if (value > 20 && value <= 25) return 'rgba(230, 212, 12, 0.85)'; 
-        if (value > 25) return 'rgba(230, 63, 12, 0.85)';
-      }
-    return '#ffffff'; // Standard: Weiß (falls nichts zutrifft)
+
+    // Farben für cm/m Werte (Füllstand)
+    if (unitLower.includes('cm') || unitLower.includes('m')) {
+      if (value <= 10) return '#ef4444';
+      if (value > 10 && value <= 25) return 'rgba(230, 63, 12, 0.85)';
+      if (value > 25 && value <= 50) return 'rgba(230, 212, 12, 0.85)';
+      if (value > 50 && value <= 75) return 'rgba(197, 230, 12, 0.85)';
+      return 'rgba(85, 230, 12, 0.85)';
+    }
+
+    return '#ffffff'; // Standard: Weiß
   };
 
   const formatValue = (value) => {
@@ -114,9 +102,9 @@ const PHCard = ({pause,resume,isPlaying}) => {
 
   return (
     <CardContainer>
-      <Header><h4>WATER</h4></Header>
+      <Header><h4> RESERVOIR LEVEL</h4></Header>
       <Content>
-        {phSensors.map((sensor) => (
+        {tankLevelSensors.map((sensor) => (
           <DataBox key={sensor.id} onClick={() => handleDataBoxClick(sensor.id)}>
             <Label>{sensor.friendlyName}</Label>
             <ValueWrapper>
@@ -127,15 +115,15 @@ const PHCard = ({pause,resume,isPlaying}) => {
             </ValueWrapper>
           </DataBox>
         ))}
-        {phSensors.length === 0 && <NoData>No Water sensors found.</NoData>}
+        {tankLevelSensors.length === 0 && <NoData>No Tank Level sensors found.</NoData>}
       </Content>
 
-      {/* Bedingtes Rendern des Modals */}
+      {/* History Chart Modal */}
       {selectedSensor && (
         <ModalOverlay onClick={closeHistoryChart}>
           <ModalContent onClick={(e) => e.stopPropagation()}>
             <HistoryChart sensorId={selectedSensor} onClose={closeHistoryChart} />
-        
+          
           </ModalContent>
         </ModalOverlay>
       )}
@@ -143,7 +131,7 @@ const PHCard = ({pause,resume,isPlaying}) => {
   );
 };
 
-export default PHCard;
+export default TankLevelCard;
 
 const CardContainer = styled.div``;
 
