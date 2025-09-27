@@ -14,7 +14,7 @@ const LogItem = ({ room, date, info }) => {
       // msg sicher extrahieren
       const msg = entry?.message?.toLowerCase() || '';
 
-      console.log(data, msg);
+      //console.log(data, msg);
 
       if (entry.controllerType === "PID") return 'pid-controller';
       if (entry.action) return 'action';

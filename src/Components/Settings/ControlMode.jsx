@@ -33,52 +33,59 @@ const capitalize = (str) => {
   return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 };
 
-// Cache variables for launch data
-let cachedLaunchData = null;
-let lastFetchTime = 0;
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+// Fixed Launch Configuration
+const FIXED_LAUNCH_CONFIG = {
+  // Set your fixed launch date here - example: January 1, 2026
+  LAUNCH_DATE: new Date('2025-12-01T00:00:00Z'),
+  IS_LAUNCHED: false, // Set to true when you want to enable premium features immediately
+  LAUNCH_MESSAGE: 'Enterprise Features launching soon!'
+};
 
-const fetchLaunchDate = async () => {
-  const now = Date.now();
-  
-  // Verwende Cache wenn verfügbar und nicht abgelaufen
-  if (cachedLaunchData && (now - lastFetchTime) < CACHE_DURATION) {
-    return cachedLaunchData;
+// Simplified Launch Date Functions (No API Calls)
+const isLaunchDateReached = () => {
+  if (FIXED_LAUNCH_CONFIG.IS_LAUNCHED) {
+    return true;
+  }
+  const now = new Date();
+  return now >= FIXED_LAUNCH_CONFIG.LAUNCH_DATE;
+};
+
+const getDaysUntilLaunch = () => {
+  if (FIXED_LAUNCH_CONFIG.IS_LAUNCHED) {
+    return 0;
+  }
+  const now = new Date();
+  const diffTime = FIXED_LAUNCH_CONFIG.LAUNCH_DATE - now;
+  return Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
+};
+
+const formatLaunchDate = () => {
+  return FIXED_LAUNCH_CONFIG.LAUNCH_DATE.toLocaleDateString('de-DE', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+};
+
+const getCountdownTime = () => {
+  if (FIXED_LAUNCH_CONFIG.IS_LAUNCHED) {
+    return { days: 0, hours: 0, minutes: 0, seconds: 0 };
   }
   
-  try {
-    const response = await fetch(DEV_CONFIG.LAUNCH_API_URL, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-    
-    if (!response.ok) {
-      throw new Error(`API Error: ${response.status}`);
-    }
-    
-    const data = await response.json();
-    
-    // Cache die Daten
-    cachedLaunchData = {
-      launchDate: new Date(data.premiumLaunch || data.launch_date || DEV_CONFIG.FALLBACK_LAUNCH_DATE),
-      isActive: data.premiumAvailable || data.is_active || false,
-      message: data.message || ''
-    };
-    lastFetchTime = now;
-    
-    return cachedLaunchData;
-  } catch (error) {
-    console.warn('Failed to fetch launch date from API:', error);
-    
-    // Fallback zu cached Daten oder Standard-Datum
-    return cachedLaunchData || {
-      launchDate: DEV_CONFIG.FALLBACK_LAUNCH_DATE,
-      isActive: false,
-      message: 'Using fallback launch date'
-    };
+  const now = new Date().getTime();
+  const launchTime = FIXED_LAUNCH_CONFIG.LAUNCH_DATE.getTime();
+  const distance = launchTime - now;
+
+  if (distance <= 0) {
+    return { days: 0, hours: 0, minutes: 0, seconds: 0 };
   }
+
+  return {
+    days: Math.floor(distance / (1000 * 60 * 60 * 24)),
+    hours: Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
+    minutes: Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60)),
+    seconds: Math.floor((distance % (1000 * 60)) / 1000)
+  };
 };
 
 // Test User Access Check
@@ -124,51 +131,6 @@ const isDevUser = (userEmail, userId) => {
   return DEV_CONFIG.IS_DEV_MODE;
 };
 
-const isLaunchDateReached = async () => {
-  try {
-    const launchData = await fetchLaunchDate();
-    const now = new Date();
-    return now >= launchData.launchDate || launchData.isActive;
-  } catch (error) {
-    console.error('Error checking launch date:', error);
-    // Fallback zur lokalen Prüfung
-    const now = new Date();
-    return now >= DEV_CONFIG.FALLBACK_LAUNCH_DATE;
-  }
-};
-
-const getDaysUntilLaunch = async () => {
-  try {
-    const launchData = await fetchLaunchDate();
-    const now = new Date();
-    const diffTime = launchData.launchDate - now;
-    return Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
-  } catch (error) {
-    console.error('Error calculating days until launch:', error);
-    const now = new Date();
-    const diffTime = DEV_CONFIG.FALLBACK_LAUNCH_DATE - now;
-    return Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
-  }
-};
-
-const formatLaunchDate = async () => {
-  try {
-    const launchData = await fetchLaunchDate();
-    return launchData.launchDate.toLocaleDateString('de-DE', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  } catch (error) {
-    return DEV_CONFIG.FALLBACK_LAUNCH_DATE.toLocaleDateString('de-DE', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  }
-};
-
-
 const ControlMode = ({ onSelectChange }) => {
   const { roomOptions, connection, entities} = useHomeAssistant();
   const controlOptions = ["HomeAssistant", "Node-RED", "Self-Hosted","Premium"];
@@ -188,11 +150,10 @@ const ControlMode = ({ onSelectChange }) => {
   const [testUserMessage, setTestUserMessage] = useState('');
   const [testUserAccess, setTestUserAccess] = useState(null);
   
-  // Launch Date States
-  const [daysUntilLaunch, setDaysUntilLaunch] = useState(null);
+  // Launch Date States - Simplified
+  const [daysUntilLaunch, setDaysUntilLaunch] = useState(0);
   const [isLaunched, setIsLaunched] = useState(false);
   const [launchDateString, setLaunchDateString] = useState('');
-  const [isLoadingLaunchInfo, setIsLoadingLaunchInfo] = useState(true);
   const [launchCountdown, setLaunchCountdown] = useState({
     days: 0,
     hours: 0,
@@ -202,31 +163,20 @@ const ControlMode = ({ onSelectChange }) => {
 
   const {subscription, isPremium, ogbSessions, ogbMaxSessions, logout, canAddNewRoom, userEmail, userId } = usePremium();
 
-  // Load launch information
+  // Load launch information - Now using fixed configuration
   useEffect(() => {
-    const loadLaunchInfo = async () => {
-      try {
-        setIsLoadingLaunchInfo(true);
-        
-        const [launched, days, dateString] = await Promise.all([
-          isLaunchDateReached(),
-          getDaysUntilLaunch(),
-          formatLaunchDate()
-        ]);
-        
-        setIsLaunched(launched);
-        setDaysUntilLaunch(days);
-        setLaunchDateString(dateString);
-        
-        // Start countdown if not launched yet
-        if (!launched && days > 0) {
-          startCountdown();
-        }
-        
-      } catch (error) {
-        console.error('Failed to load launch info:', error);
-      } finally {
-        setIsLoadingLaunchInfo(false);
+    const loadLaunchInfo = () => {
+      const launched = isLaunchDateReached();
+      const days = getDaysUntilLaunch();
+      const dateString = formatLaunchDate();
+      
+      setIsLaunched(launched);
+      setDaysUntilLaunch(days);
+      setLaunchDateString(dateString);
+      
+      // Start countdown if not launched yet
+      if (!launched && days > 0) {
+        setLaunchCountdown(getCountdownTime());
       }
     };
     
@@ -234,26 +184,19 @@ const ControlMode = ({ onSelectChange }) => {
   }, []);
 
   // Countdown timer for more precise countdown
-  const startCountdown = () => {
-    const updateCountdown = async () => {
-      try {
-        const launchData = await fetchLaunchDate();
-        const now = new Date().getTime();
-        const launchTime = launchData.launchDate.getTime();
-        const distance = launchTime - now;
+  useEffect(() => {
+    if (isLaunched || daysUntilLaunch === 0) {
+      return;
+    }
 
-        if (distance > 0) {
-          const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-          const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-          const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-          const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-
-          setLaunchCountdown({ days, hours, minutes, seconds });
-        } else {
-          setIsLaunched(true);
-        }
-      } catch (error) {
-        console.error('Countdown update failed:', error);
+    const updateCountdown = () => {
+      const countdown = getCountdownTime();
+      setLaunchCountdown(countdown);
+      
+      // Check if launch date has been reached
+      if (countdown.days === 0 && countdown.hours === 0 && 
+          countdown.minutes === 0 && countdown.seconds === 0) {
+        setIsLaunched(true);
       }
     };
 
@@ -263,7 +206,7 @@ const ControlMode = ({ onSelectChange }) => {
     
     // Cleanup interval on component unmount
     return () => clearInterval(interval);
-  };
+  }, [isLaunched, daysUntilLaunch]);
 
   // Filter rooms that have sensor.ogb_ entities
   useEffect(() => {
@@ -644,50 +587,41 @@ const ControlMode = ({ onSelectChange }) => {
             Unlock exclusive features from our Premium Enterprise Version and get access to advanced functionality.
           </NoSubDescription>
           
-          {/* Launch Info Display */}
-          {isLoadingLaunchInfo ? (
+          {/* Launch Info Display - Now using fixed configuration */}
+          {isLaunched ? (
             <LaunchInfo>
-              <LoadingSpinner />
-              <div style={{ marginTop: '8px' }}>Loading launch information...</div>
+              🎉 Enterprise Features are now available! Sign up today to get started.
             </LaunchInfo>
           ) : (
             <>
-              {isLaunched ? (
-                <LaunchInfo>
-                  🎉 Enterprise Features are now available! Sign up today to get started.
-                </LaunchInfo>
-              ) : (
-                <>
-                  <LaunchInfo>
-                    {daysUntilLaunch === 0 
-                      ? "🚀 Enterprise Features launching today!" 
-                      : `⏰ Launch in ${daysUntilLaunch} Day${daysUntilLaunch > 1 ? "s" : ""} - at ${launchDateString}`}
-                  </LaunchInfo>
-                  
-                  {/* Detailed Countdown */}
-                  {daysUntilLaunch > 0 && (
-                    <CountdownContainer>
-                      {launchCountdown.days > 0 && (
-                        <CountdownBox>
-                          <CountdownNumber>{launchCountdown.days}</CountdownNumber>
-                          <CountdownLabel>Days</CountdownLabel>
-                        </CountdownBox>
-                      )}
-                      <CountdownBox>
-                        <CountdownNumber>{launchCountdown.hours}</CountdownNumber>
-                        <CountdownLabel>Hours</CountdownLabel>
-                      </CountdownBox>
-                      <CountdownBox>
-                        <CountdownNumber>{launchCountdown.minutes}</CountdownNumber>
-                        <CountdownLabel>Minutes</CountdownLabel>
-                      </CountdownBox>
-                      <CountdownBox>
-                        <CountdownNumber>{launchCountdown.seconds}</CountdownNumber>
-                        <CountdownLabel>Seconds</CountdownLabel>
-                      </CountdownBox>
-                    </CountdownContainer>
+              <LaunchInfo>
+                {daysUntilLaunch === 0 
+                  ? "🚀 Enterprise Features launching today!" 
+                  : `⏰ Launch in ${daysUntilLaunch} Day${daysUntilLaunch > 1 ? "s" : ""} - at ${launchDateString}`}
+              </LaunchInfo>
+              
+              {/* Detailed Countdown */}
+              {daysUntilLaunch > 0 && (
+                <CountdownContainer>
+                  {launchCountdown.days > 0 && (
+                    <CountdownBox>
+                      <CountdownNumber>{launchCountdown.days}</CountdownNumber>
+                      <CountdownLabel>Days</CountdownLabel>
+                    </CountdownBox>
                   )}
-                </>
+                  <CountdownBox>
+                    <CountdownNumber>{launchCountdown.hours}</CountdownNumber>
+                    <CountdownLabel>Hours</CountdownLabel>
+                  </CountdownBox>
+                  <CountdownBox>
+                    <CountdownNumber>{launchCountdown.minutes}</CountdownNumber>
+                    <CountdownLabel>Minutes</CountdownLabel>
+                  </CountdownBox>
+                  <CountdownBox>
+                    <CountdownNumber>{launchCountdown.seconds}</CountdownNumber>
+                    <CountdownLabel>Seconds</CountdownLabel>
+                  </CountdownBox>
+                </CountdownContainer>
               )}
             </>
           )}

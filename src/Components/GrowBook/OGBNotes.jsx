@@ -39,7 +39,7 @@ const OGBNotes = () => {
       key.startsWith("text.ogb_notes_") &&
       key.toLowerCase().includes(currentRoom?.toLowerCase())
   );
-    console.log(noteSensor)
+
     if (noteSensor) {
       const [, entity] = noteSensor;
       setOGBNoteEntity(entity.entity_id);
