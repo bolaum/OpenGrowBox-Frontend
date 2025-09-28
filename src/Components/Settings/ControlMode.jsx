@@ -36,7 +36,7 @@ const capitalize = (str) => {
 // Fixed Launch Configuration
 const FIXED_LAUNCH_CONFIG = {
   // Set your fixed launch date here - example: January 1, 2026
-  LAUNCH_DATE: new Date('2025-12-01T00:00:00Z'),
+  LAUNCH_DATE: new Date('2026-01-01T00:00:00Z'),
   IS_LAUNCHED: false, // Set to true when you want to enable premium features immediately
   LAUNCH_MESSAGE: 'Enterprise Features launching soon!'
 };

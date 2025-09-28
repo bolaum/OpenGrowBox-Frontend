@@ -31,7 +31,7 @@ const LogItem = ({ room, date, info }) => {
 
 
   const logType = getLogType(parsedInfo);
-  console.log(logType)
+
   function calculateUptimeFromTimestamp(timestampMs) {
     const now = Date.now(); // aktuelle Zeit in Millisekunden
     const uptimeSeconds = Math.floor((now - timestampMs) / 1000); // Differenz in Sekunden
