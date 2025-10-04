@@ -545,15 +545,15 @@ const ControlMode = ({ onSelectChange }) => {
         </PremiumPlanCard>
       ) : (
         <NoSubWrapper>
-          <NoSubTitle>🚀 Enterprise Launch Soon</NoSubTitle>
+          <NoSubTitle>🚀 Premium Launch Soon</NoSubTitle>
           <NoSubDescription>
-            Unlock exclusive features from our Premium Enterprise Version and get access to advanced functionality.
+            Unlock exclusive features from our Premium Add-On and get access to advanced functionality.
           </NoSubDescription>
           
           {/* Launch Info Display - Now using fixed configuration */}
           {isLaunched ? (
             <LaunchInfo>
-              🎉 Enterprise Features are now available! Sign up today to get started.
+              🎉 Premium Features are now available! Sign up today to get started.
             </LaunchInfo>
           ) : (
             <>
