@@ -37,7 +37,6 @@ export const GlobalStateProvider = ({ children }) => {
   const [HASS,setHASS] = useState(null)
   const [accessToken,setAccessToken] = useState(null)
   const [entities, setEntities] = useState({});
-  const [entitieStates, setEntitieStates] = useState({});
   const [currentRoom, setCurrentRoom] = useState('');
   const [roomOptions, setRoomOptions] = useState([]);
 

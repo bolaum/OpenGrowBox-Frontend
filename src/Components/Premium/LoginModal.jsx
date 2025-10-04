@@ -3,11 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { usePremium } from '../Context/OGBPremiumContext';
 import OGBIcon from '../../misc/OGBIcon';
-import { FaGithub, FaGoogle } from 'react-icons/fa';
 
 export default function LoginModal({ onClose, selectedRoom }) {
   const { login, isPremium, authStatus, authProvider } = usePremium();
-  const [formData, setFormData] = useState({ email: '', password: '' });
+  const [formData, setFormData] = useState({ email: '', OGBToken: '' });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -15,7 +14,7 @@ export default function LoginModal({ onClose, selectedRoom }) {
   const navigate = useNavigate();
 
   // Handle OAuth loading state
-  const isOAuthLoading = authStatus === 'authenticating' && authProvider;
+
   const isEmailLoading = authStatus === 'authenticating' && !authProvider;
 
   // redirect nach erfolgreichem login
@@ -50,27 +49,14 @@ export default function LoginModal({ onClose, selectedRoom }) {
     setSuccess('');
 
     try {
-      await login(formData.email, formData.password, selectedRoom);
+      await login(formData.email, formData.OGBToken, selectedRoom);
     } catch (err) {
       setError(err.message);
       setLoading(false);
     }
   };
 
-  const handleOAuthLogin = async (provider) => {
-    setLoading(true);
-    setError('');
-    
-    try {
-      console.log(`Starting ${provider} OAuth login...`);
-      await login(null, null, selectedRoom, provider);
-      // The redirect will happen automatically via the context
-    } catch (err) {
-      console.error('OAuth login error:', err);
-      setError(err.message);
-      setLoading(false);
-    }
-  };
+
 
   // esc key close
   useEffect(() => {
@@ -94,45 +80,6 @@ export default function LoginModal({ onClose, selectedRoom }) {
           <Subtitle>Sign In</Subtitle>
         </Header>
 
-        {/* Show OAuth loading state */}
-        {isOAuthLoading ? (
-          <LoadingContainer>
-            <LoadingSpinner />
-            <LoadingText>
-              Redirecting to {authProvider === 'github' ? 'GitHub' : 'Google'}...
-            </LoadingText>
-            <LoadingSubtext>
-              You will be redirected to authenticate with your {authProvider === 'github' ? 'GitHub' : 'Google'} account
-            </LoadingSubtext>
-          </LoadingContainer>
-        ) : (
-          <>
-            {/* OAuth Buttons */}
-            <OAuthContainer>
-              <OAuthButton 
-                onClick={() => handleOAuthLogin('github')} 
-                disabled={loading}
-              >
-                <FaGithub />
-                Continue with GitHub
-              </OAuthButton>
-              
-              <OAuthButton 
-                onClick={() => handleOAuthLogin('google')} 
-                disabled={loading}
-              >
-                <FaGoogle />
-                Continue with Google
-              </OAuthButton>
-            </OAuthContainer>
-
-            <Divider>
-              <DividerLine />
-              <DividerText>or continue with email</DividerText>
-              <DividerLine />
-            </Divider>
-
-            {/* Email/Password Form */}
             <FormWrapper>
               <Form onSubmit={handleSubmit}>
                 {error && <ErrorMessage>{error}</ErrorMessage>}
@@ -155,8 +102,8 @@ export default function LoginModal({ onClose, selectedRoom }) {
                   <Label>Access Token</Label>
                   <Input
                     type="password"
-                    name="password"
-                    value={formData.password}
+                    name="OGBToken"
+                    value={formData.OGBToken}
                     onChange={handleInputChange}
                     placeholder="Your OGB Access Token"
                     required
@@ -177,20 +124,7 @@ export default function LoginModal({ onClose, selectedRoom }) {
                 </SubmitButton>
               </Form>
 
-              <LinksContainer>
-                <LinkButton
-                  as="a"
-                  href="https://opengrowbox.net/login"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  disabled={loading}
-                >
-                  Forgot password? / Create Account
-                </LinkButton>
-              </LinksContainer>
             </FormWrapper>
-          </>
-        )}
 
         <FooterNote>
           🌱 Open Source Grow Automation - Fully controllable with your OpenGrowBox account

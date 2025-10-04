@@ -3,7 +3,7 @@ import styled, { keyframes, css } from 'styled-components';
 import { useHomeAssistant } from '../Context/HomeAssistantContext';
 import LoginModal from '../Premium/LoginModal';
 import {formatDateTime} from '../../misc/formatTimeDate'
-import { usePremium, } from '../Context/OGBPremiumContext';
+import { usePremium } from '../Context/OGBPremiumContext';
 import { DEV_CONFIG } from '../../config';
 
 // Premium Animations
@@ -88,46 +88,8 @@ const getCountdownTime = () => {
   };
 };
 
-// Test User Access Check
-const checkTestUserAccess = async (user_id, email, ogbaccesstoken) => {
-  console.log(ogbaccesstoken, email, user_id)
-  try {
-    const response = await fetch(DEV_CONFIG.TEST_USER_API_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        user_id,
-        email,
-        ogbaccesstoken
-      })
-    });
-    
-    if (!response.ok) {
-      throw new Error(`API Error: ${response.status}`);
-    }
-    
-    const data = await response.json();
-    return {
-      hasAccess: data.access || false,
-      message: data.message || '',
-      userType: data.userType || 'standard'
-    };
-    
-  } catch (error) {
-    console.error('Failed to check test user access:', error);
-    return {
-      hasAccess: false,
-      message: 'Error checking user access',
-      userType: 'standard'
-    };
-  }
-};
 
-// Utility Functions
 const isDevUser = (userEmail, userId) => {
-  // Nur Dev-Modus aktiviert automatischen Zugang
   return DEV_CONFIG.IS_DEV_MODE;
 };
 
@@ -161,7 +123,8 @@ const ControlMode = ({ onSelectChange }) => {
     seconds: 0
   });
 
-  const {subscription, isPremium, ogbSessions, ogbMaxSessions, logout, canAddNewRoom, userEmail, userId } = usePremium();
+  const {subscription, isPremium, ogbSessions, ogbMaxSessions, logout, 
+    canAddNewRoom, userEmail, userId,devUserLogin,devTestUser } = usePremium();
 
   // Load launch information - Now using fixed configuration
   useEffect(() => {
@@ -381,7 +344,7 @@ const ControlMode = ({ onSelectChange }) => {
     setTestUserMessage('');
     
     try {
-      const accessResult = await checkTestUserAccess(
+      const accessResult = await devUserLogin(
         testUserData.user_id.trim(), 
         testUserData.email.trim(),
         testUserData.ogbaccesstoken.trim()
@@ -390,7 +353,7 @@ const ControlMode = ({ onSelectChange }) => {
       setTestUserAccess(accessResult);
       console.log(accessResult);
       
-      if (accessResult.hasAccess) {
+      if (accessResult.success) {
         setTestUserMessage('✅ Test access granted! You can now use Premium features.');
         
         // Nach 2 Sekunden Modal schließen
@@ -627,8 +590,11 @@ const ControlMode = ({ onSelectChange }) => {
           )}
           
           <UpgradeButton onClick={() => window.open("https://opengrowbox.net", "_blank")}>
-            Get your Account Soon
+            Get your Account Now !
           </UpgradeButton>
+            <LaunchInfo>
+              🎉 It’s possible you’ll become a dev tester 🎉
+            </LaunchInfo>
         </NoSubWrapper>
       )}
     </Container>
@@ -944,10 +910,6 @@ const StatusDot = styled.div`
   animation: ${glow} 2s ease-in-out infinite;
 `;
 
-
-
-
-
 const UpgradeButton = styled.button`
   background: linear-gradient(90deg, #f59e0b, #d97706);
   color: white;
@@ -955,6 +917,7 @@ const UpgradeButton = styled.button`
   border: none;
   border-radius: 12px;
   padding: 0.75rem 1.5rem;
+  margin-bottom:1rem;
   cursor: pointer;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 

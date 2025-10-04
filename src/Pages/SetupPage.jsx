@@ -91,7 +91,7 @@ const SetupPage = () => {
       <InputWrapper>
         <Input
           type="text"
-          placeholder="Enter API Token..."
+          placeholder="Enter Assistant Long-Lived Token..."
           value={inputToken}
           onChange={handleInputChange}
         />

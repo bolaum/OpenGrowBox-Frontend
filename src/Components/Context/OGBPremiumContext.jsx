@@ -18,7 +18,8 @@ export const OGBPremiumProvider = ({ children }) => {
   const [subscription, setSubscription] = useState(null);
   const [userProfile, setUserProfile] = useState(null);
   const [maxRoomsReached,setMaxRoomsReached] = useState(false)
-  const [authProvider,setAuthProvider] = useState(null)
+
+  const [devTestUser,setDevTestUser] = useState({})
 
   const [authStatus, setAuthStatus] = useState('idle');
   const [lastError, setLastError] = useState(null);
@@ -87,7 +88,7 @@ export const OGBPremiumProvider = ({ children }) => {
     setUserProfile(null);
     setSubscription(null);
     setAuthStatus('idle');
-    setAuthProvider(null);
+
     setDeep("OGBPremium", null);
   };
 
@@ -98,12 +99,12 @@ export const OGBPremiumProvider = ({ children }) => {
     
     // Prüfe ob es einen spezifischen Callback für diese event_id gibt
     const callback = callbacksRef.current.get(event_id);
-    
+    let newSession
     if (status === "success" && data) {
       // Aktualisiere immer die States basierend auf der Message
       switch (message) {
         case "LoginSuccess":
-          const newSession = {
+          newSession = {
             access_token: data.access_token,
             refresh_token: data.refresh_token,
             user: data.user,
@@ -139,6 +140,11 @@ export const OGBPremiumProvider = ({ children }) => {
           } catch (error) {
             console.error('Fehler beim Laden des Profils nach Login:', error);
           }
+          break;
+
+
+        case "DevLoginSuccess":
+          setDevTestUser(data)
           break;
 
         case "Logout successful":
@@ -362,41 +368,38 @@ export const OGBPremiumProvider = ({ children }) => {
     }
   };
 
-  const login = async (email, password, selectedRoom, oauthProvider = null) => {
-    setAuthStatus('authenticating');
-    setLastError(null);
-    setAuthProvider(oauthProvider);
+  const devUserLogin = async (user_id, email, OGBToken) => {
 
     try {
-      const loginData = oauthProvider 
-        ? { oauth_provider: oauthProvider, room: selectedRoom }
-        : { email, password, room: selectedRoom };
-
-      const result = await sendAuthEventWithCallback('ogb_premium_login', loginData);
+      const testUserData = {user_id, email, OGBToken }
+      const result = await sendAuthEventWithCallback('ogb_premium_devlogin', testUserData);
       return result;
+
     } catch (error) {
+
       setAuthStatus('error');
       setLastError(error.message);
-      setAuthProvider(null);
+
       console.error('Login error:', error);
       throw error;
     }
   };
 
-  const handleOAuthCallback = async (code, state) => {
+  const login = async (email, OGBToken, selectedRoom) => {
     setAuthStatus('authenticating');
     setLastError(null);
-    
+
+
     try {
-      const result = await sendAuthEventWithCallback('ogb_premium_oauth_callback', {
-        code,
-        state,
-        room: currentRoom
-      });
+      const loginData = { email, OGBToken, room: selectedRoom }
+      console.log("LOGINDATA:",loginData)
+      const result = await sendAuthEventWithCallback('ogb_premium_login', loginData);
       return result;
     } catch (error) {
       setAuthStatus('error');
       setLastError(error.message);
+
+      console.error('Login error:', error);
       throw error;
     }
   };
@@ -416,48 +419,6 @@ export const OGBPremiumProvider = ({ children }) => {
     return isMax;
   };
 
-  const register = async (email, password, confirmPassword) => {
-    setAuthStatus('authenticating');
-    setLastError(null);
-    
-    try {
-      const result = await sendAuthEventWithCallback('ogb_premium_register', { 
-        email, 
-        password, 
-        confirmPassword 
-      });
-      return result;
-    } catch (error) {
-      setAuthStatus('error');
-      setLastError(error.message);
-      console.error('Registration error:', error);
-      throw error;
-    }
-  };
-
-  const forgotPassword = async (email) => {
-    try {
-      const result = await sendAuthEventWithCallback('ogb_premium_forgot_password', { email });
-      return result;
-    } catch (error) {
-      console.error('Forgot password error:', error);
-      throw error;
-    }
-  };
-
-  const resetPassword = async (token, password, confirmPassword) => {
-    try {
-      const result = await sendAuthEventWithCallback('ogb_premium_reset_password', { 
-        token, 
-        password, 
-        confirmPassword 
-      });
-      return result;
-    } catch (error) {
-      console.error('Reset password error:', error);
-      throw error;
-    }
-  };
 
   const getProfile = async () => {
     try {
@@ -580,17 +541,16 @@ export const OGBPremiumProvider = ({ children }) => {
         userProfile,
         authStatus,
         lastError,
-        authProvider,
         publicGrowPlans,
         privateGrowPlans,
         strainGrowPlan,
         activeGrowPlan,
         growPlans,
+        devTestUser,
+        ///
+        devUserLogin,
         login,
         logout,
-        register,
-        forgotPassword,
-        resetPassword,
         getProfile,
         updateProfile,
         clearError,
@@ -601,7 +561,7 @@ export const OGBPremiumProvider = ({ children }) => {
         delGrowPlan,
         activateGrowPlan,
         canAddNewRoom,
-        handleOAuthCallback,
+
       }}
     >
       {children}

@@ -11,7 +11,10 @@ const DeviceCard = () => {
   const [devices, setDevices] = useState([]);
   const [deviceSelect, setDeviceSelect] = useState("room");
 
-  const updateDevices = () => {
+
+
+
+const updateDevices = () => {
     let sensors = Object.entries(entities)
       .filter(([key, entity]) => {
         const isRelevantType =
@@ -21,8 +24,29 @@ const DeviceCard = () => {
             key.startsWith("climate.") ||
             key.startsWith("humidifier.")) &&
           !key.includes("template");
-        return isRelevantType && entity.state !== "unavailable";
+
+        // Hole die entity-Konfiguration aus HASS.entities
+        const haEntity = HASS?.entities?.[key];
+        
+        const isHidden =
+          entity.hidden === true ||
+          entity.hidden === "true" ||
+          entity.attributes?.hidden === true ||
+          entity.attributes?.hidden === "true" ||
+          haEntity?.hidden === true ||
+          haEntity?.hidden === "true";
+
+        const isDisabled =
+          entity.disabled === true ||
+          entity.disabled === "true" ||
+          entity.attributes?.disabled === true ||
+          entity.attributes?.disabled === "true" ||
+          haEntity?.disabled === true ||
+          haEntity?.disabled === "true";
+
+        return isRelevantType && entity.state !== "unavailable" && !isHidden && !isDisabled;
       })
+
       .map(([key, entity]) => {
         const domain = key.split(".")[0];
         const title = formatLabel(entity.attributes?.friendly_name || entity.entity_id);
@@ -85,6 +109,7 @@ const DeviceCard = () => {
     setDevices(sortedSensors);
   };
 
+  
   useEffect(() => {
     updateDevices();
 

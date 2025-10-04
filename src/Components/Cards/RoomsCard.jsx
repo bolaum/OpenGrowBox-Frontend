@@ -1,15 +1,28 @@
 import { useHomeAssistant } from '../Context/HomeAssistantContext';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
+import { useMemo } from 'react';
 
 const RoomsCard = ({ areas }) => {
-  const { currentRoom } = useHomeAssistant();
+  const { currentRoom, entities } = useHomeAssistant();
+
+  // Filtere nur Räume, die sensor.ogb_ Entities haben
+  const filteredAreas = useMemo(() => {
+    return areas.filter(room => {
+      // Filtere "ambient" aus
+      if (room.toLowerCase() === "ambient") return false;
+      
+      // Prüfe ob es für diesen Raum mindestens einen sensor.ogb_ gibt
+      const hasSensors = Object.keys(entities).some(entityId => 
+        entityId.startsWith('sensor.ogb_') && 
+        entityId.toLowerCase().includes(room.toLowerCase())
+      );
+      return hasSensors;
+    });
+  }, [areas, entities]);
 
   // Verdoppelt das Array, um einen nahtlosen Übergang zu erreichen
-  const duplicatedAreas = areas
-    .filter(a => a.toLowerCase() !== "ambient")
-    .concat(areas.filter(a => a.toLowerCase() !== "ambient"));
-
+  const duplicatedAreas = filteredAreas.concat(filteredAreas);
 
   return (
     <Container>
@@ -47,8 +60,7 @@ const Container = styled.div`
 
 const TextContent = styled.div`
   display: flex;
-  align-items: center; /* Zentriert den Inhalt vertikal */
-
+  align-items: center;
   padding:0.15rem;
 `;
 
@@ -57,7 +69,6 @@ const CurrentRoom = styled.div`
   justify-content:center;
   align-items:center;
   flex-direction: column;
-
   padding: 0.25rem;
   min-width: 38%;
   box-shadow: var(--main-shadow-art);
@@ -66,17 +77,15 @@ const CurrentRoom = styled.div`
 const ScrollingContainer = styled.div`
   overflow: hidden;
   width: 100%;
-
 `;
 
 const ScrollingList = styled(motion.div)`
   display: flex;
   align-items: center;
-  width: 200%; /* Damit der doppelte Inhalt richtig dargestellt wird */
+  width: 200%;
 `;
 
 const RoomItem = styled.div`
-
   flex: 0 0 auto;
   box-shadow: var(--main-shadow-art);
   margin-right: 1rem;
@@ -91,5 +100,4 @@ const Room = styled.div`
   margin-top: 0.5rem;
   font-weight: bold;
   color:var(--primary-accent);
-
 `;
