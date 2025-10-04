@@ -593,7 +593,7 @@ const ControlMode = ({ onSelectChange }) => {
             Get your Account Now !
           </UpgradeButton>
             <LaunchInfo>
-              🎉 It’s possible you’ll become a dev tester 🎉
+              🎉 It’s possible you’ll become a beta Premium tester 🎉
             </LaunchInfo>
         </NoSubWrapper>
       )}
