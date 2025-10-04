@@ -3,7 +3,6 @@ import styled, { keyframes } from 'styled-components';
 import { useGlobalState } from '../Components/Context/GlobalContext';
 import { useNavigate } from 'react-router-dom';
 import { useHomeAssistant } from '../Components/Context/HomeAssistantContext';
-import isValidJWT from '../misc/isValidJWT';
 
 // Define the blue-green gradient
 const GradientDefs = () => (
@@ -31,11 +30,6 @@ const SetupPage = () => {
   const handleSubmit = async () => {
     if (!inputToken) {
       alert('Please enter your token!');
-      return;
-    }
-
-    if (!isValidJWT(inputToken)) {
-      alert('Invalid token format! Please enter a valid Token.');
       return;
     }
 
