@@ -368,10 +368,10 @@ export const OGBPremiumProvider = ({ children }) => {
     }
   };
 
-  const devUserLogin = async (user_id, email, OGBToken) => {
+  const devUserLogin = async (email, ogbAccessToken,ogbBetaToken ) => {
 
     try {
-      const testUserData = {user_id, email, OGBToken }
+      const testUserData = {email, ogbAccessToken, ogbBetaToken }
       const result = await sendAuthEventWithCallback('ogb_premium_devlogin', testUserData);
       return result;
 

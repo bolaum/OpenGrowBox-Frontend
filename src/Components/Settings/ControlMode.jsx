@@ -107,7 +107,7 @@ const ControlMode = ({ onSelectChange }) => {
   const initializedRef = useRef(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showTestUserModal, setShowTestUserModal] = useState(false);
-  const [testUserData, setTestUserData] = useState({ user_id: '', email: '', ogbaccesstoken: '' });
+  const [testUserData, setTestUserData] = useState({ email: '', ogbAccessToken: '',ogbBetaToken:''});
   const [testUserLoading, setTestUserLoading] = useState(false);
   const [testUserMessage, setTestUserMessage] = useState('');
   const [testUserAccess, setTestUserAccess] = useState(null);
@@ -335,7 +335,7 @@ const ControlMode = ({ onSelectChange }) => {
   const handleTestUserSubmit = async (e) => {
     e.preventDefault();
     
-    if (!testUserData.user_id.trim() || !testUserData.email.trim()) {
+    if (!testUserData.ogbBetaToken.trim() || !testUserData.email.trim()|| !testUserData.ogbAccessToken.trim()) {
       setTestUserMessage('Please fill in all fields');
       return;
     }
@@ -345,9 +345,9 @@ const ControlMode = ({ onSelectChange }) => {
     
     try {
       const accessResult = await devUserLogin(
-        testUserData.user_id.trim(), 
         testUserData.email.trim(),
-        testUserData.ogbaccesstoken.trim()
+        testUserData.ogbAccessToken.trim(),
+        testUserData.ogbBetaToken.trim()
       );
       
       setTestUserAccess(accessResult);
@@ -374,7 +374,7 @@ const ControlMode = ({ onSelectChange }) => {
   };
 
   const resetTestUserModal = () => {
-    setTestUserData({ user_id: '', email: '', ogbaccesstoken: '' });
+    setTestUserData({ email: '', ogbBetaToken: '', ogbAccessToken: '' });
     setTestUserMessage('');
     setTestUserAccess(null);
     setTestUserLoading(false);
@@ -439,14 +439,6 @@ const ControlMode = ({ onSelectChange }) => {
             
             <TestUserForm onSubmit={handleTestUserSubmit}>
               <TestUserInput
-                type="text"
-                placeholder="user_id"
-                value={testUserData.user_id}
-                onChange={(e) => setTestUserData(prev => ({ ...prev, user_id: e.target.value }))}
-                disabled={testUserLoading}
-                required
-              />
-              <TestUserInput
                 type="email"
                 placeholder="Email"
                 value={testUserData.email}
@@ -456,12 +448,20 @@ const ControlMode = ({ onSelectChange }) => {
               />
               <TestUserInput
                 type="password"
-                placeholder="Access Token"
-                value={testUserData.ogbaccesstoken}
-                onChange={(e) => setTestUserData(prev => ({ ...prev, ogbaccesstoken: e.target.value }))}
+                placeholder="Your Beta OGB Token"
+                value={testUserData.ogbBetaToken}
+                onChange={(e) => setTestUserData(prev => ({ ...prev, ogbBetaToken: e.target.value }))}
                 disabled={testUserLoading}
                 required
-              />      
+              />
+              <TestUserInput
+                type="password"
+                placeholder="Your Private OGB Token"
+                value={testUserData.ogbAccessToken}
+                onChange={(e) => setTestUserData(prev => ({ ...prev, ogbAccessToken: e.target.value }))}
+                disabled={testUserLoading}
+                required
+              />     
               <TestUserButtonGroup>
                 <TestUserButton 
                   type="button" 
