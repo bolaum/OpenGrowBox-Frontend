@@ -5,41 +5,54 @@ import SwitchCard from './SwitchCard';
 import TimeCard from './TimeCard';
 import { useHomeAssistant } from "../../Context/HomeAssistantContext";
 
+const capabilities = [
+  "canHumidify",
+	"canDehumidify",
+	"canHeat",
+	"canCool",
+	"canExhaust",
+	"canIntake",
+	"canVentilate",
+	"canLight",
+	"canCO2",
+	"canClimate",
+]
 
 const groupMappings = {
   'Main Control': {
     includeKeywords: ['vpd', 'plant', 'mode', 'leaf', 'ambient',"area"],
-    excludeKeywords: ['proportional', 'derivativ', 'integral', "light", "food", "days", "hydro", "Count", "Borrow",],
+    excludeKeywords: ['proportional', 'derivativ', 'integral', "light", "food", "days", "hydro", "Count", "Borrow", 'cooldown'],
   },
   "Lights": {
     includeKeywords: ['light', 'sun'],
-    excludeKeywords: ['Device'],
+    excludeKeywords: ['Device', 'cooldown'],
   },
   'CO₂ Control': {
     includeKeywords: ['co2'],
-    excludeKeywords: ["Device"],
+    excludeKeywords: ["Device", 'cooldown'],
   },
   "Hydro Settings": {
     includeKeywords: ['pump', 'water', 'Hydro'],
-    excludeKeywords: ["Device","feed","nutrient"],
+    excludeKeywords: ["Device","feed","nutrient", 'cooldown'],
   },
   "Feed Settings": {
     includeKeywords: ['pump', "feed","nutrient",],
-    excludeKeywords: ["Device","water","hydro"],
+    excludeKeywords: ["Device","water","hydro", 'cooldown'],
   },
   'Special Settings': {
-    includeKeywords: [''],
-    excludeKeywords: [''],
+    includeKeywords: ['cooldown'],
+    excludeKeywords: [],
   },
   "Targets": {
     includeKeywords: ['weight', 'min', 'max'],
-    excludeKeywords: ['co2', "Light", "Inhaust"],
+    excludeKeywords: ['co2', "Light", "Inhaust", 'cooldown'],
   },
   "Drying": {
     includeKeywords: ['drying'],
     excludeKeywords: [
       'device', 'vpd', 'temp', 'hum', 'co2', 'light',
       'sun', 'stage', 'plant', 'leaf', 'borrow', 'weigh',
+      'cooldown'
     ],
   },
 };
@@ -94,7 +107,7 @@ const ControllCollection = ({ option }) => {
     [`ogb_exhaust_duty_min_${currentRoom.toLowerCase()}`]: 'Set custom min duty cycle for exhaust. Requires Exhaust Min/Max enabled.',
     [`ogb_intake_duty_max_${currentRoom.toLowerCase()}`]: 'Set custom max duty cycle for intake. Requires Exhaust Min/Max enabled.',
     [`ogb_intake_duty_min_${currentRoom.toLowerCase()}`]: 'Set custom min duty cycle for intake. Requires Exhaust Min/Max enabled.',
-   
+
     [`ogb_ventilation_duty_max_${currentRoom.toLowerCase()}`]: 'Set custom max duty cycle for ventilation. Requires Ventilation Min/Max enabled.',
     [`ogb_ventilation_duty_min_${currentRoom.toLowerCase()}`]: 'Set custom min duty cycle for ventilation. Requires Ventilation Min/Max enabled.',
 
@@ -137,6 +150,12 @@ const ControllCollection = ({ option }) => {
     [`ogb_grow_area_m2_${currentRoom.toLowerCase()}`]: 'Enter your m2 Space where you growing in',
     [`ogb_ambientcontrol_${currentRoom.toLowerCase()}`]: 'Will be take care of the state of your Ambient( "NOT WORKING RIGHT NOW")',
     [`ogb_vpd_devicedampening_${currentRoom.toLowerCase()}`]: 'Enable Device Cooldowns for any device see Wiki to check the cooldowns.',
+
+    ...capabilities.reduce((acc, cap) => {
+      acc[`ogb_cooldown_${cap.toLowerCase()}_${currentRoom.toLowerCase()}`] = `Set cooldown time for "${cap.replace('can', '').toLowerCase()}" ` +
+        `capability. Requires VPD Device Dampening enabled.`;
+      return acc;
+    }, {}),
   };
 
 
