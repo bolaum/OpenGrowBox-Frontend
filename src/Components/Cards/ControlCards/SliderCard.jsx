@@ -1,7 +1,8 @@
 
+import PropTypes from 'prop-types';
 import styled from 'styled-components';
 import { useHomeAssistant } from "../../Context/HomeAssistantContext"
-const SliderCard = ({ entities }) => {
+const SliderCard = ({ entities, isLocked = false }) => {
   const { connection } = useHomeAssistant();
 
   if (!entities || entities.length === 0) {
@@ -9,6 +10,9 @@ const SliderCard = ({ entities }) => {
   }
 
   const handleSliderChange = async (entity, value) => {
+    if (isLocked) {
+      return;
+    }
 
     if (connection) {
       try {
@@ -46,6 +50,7 @@ const SliderCard = ({ entities }) => {
               step={entity.step}
               value={entity.state}
               onChange={(e) => handleSliderChange(entity, e.target.value)}
+              disabled={isLocked}
             />
 
           </SliderWrapper>
@@ -56,6 +61,11 @@ const SliderCard = ({ entities }) => {
 };
 
 export default SliderCard;
+
+SliderCard.propTypes = {
+  entities: PropTypes.arrayOf(PropTypes.object),
+  isLocked: PropTypes.bool,
+};
 
 const Container = styled.div`
   display: flex;
@@ -139,7 +149,8 @@ rgb(13, 234, 20) calc((var(--val) - var(--min)) / (var(--max) - var(--min)) * 10
   );
   appearance: none;
   transition: background 0.3s ease;
-  cursor: pointer;
+  cursor: ${(props) => (props.disabled ? 'not-allowed' : 'pointer')};
+  opacity: ${(props) => (props.disabled ? 0.4 : 1)};
 
   &:focus {
     outline: none;

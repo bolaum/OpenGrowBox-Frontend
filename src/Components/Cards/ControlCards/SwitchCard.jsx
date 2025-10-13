@@ -1,8 +1,8 @@
-
+import PropTypes from 'prop-types';
 import styled from 'styled-components';
 import { useHomeAssistant } from "../../Context/HomeAssistantContext";
 
-const SwitchCard = ({ entities }) => {
+const SwitchCard = ({ entities, isLocked = false }) => {
   const { connection } = useHomeAssistant();
 
   if (!entities || entities.length === 0) {
@@ -10,7 +10,7 @@ const SwitchCard = ({ entities }) => {
   }
 
   const handleToggle = async (entity) => {
-    if (!connection) return;
+    if (isLocked || !connection) return;
 
     const isOn = entity.state === 'on';
 
@@ -35,11 +35,12 @@ const SwitchCard = ({ entities }) => {
         <CardHeader>
           <Tooltip>{entity.tooltip}</Tooltip> {/* Tooltip anzeigen */}
           <Title>{entity.title || entity.entity_id}</Title>
-          <ToggleSwitch>
+          <ToggleSwitch $isLocked={isLocked}>
             <SwitchInput
               type="checkbox"
               checked={entity.state === 'on'}
               onChange={() => handleToggle(entity)}
+              disabled={isLocked}
             />
             <SliderTrack />
           </ToggleSwitch>
@@ -52,6 +53,11 @@ const SwitchCard = ({ entities }) => {
 };
 
 export default SwitchCard;
+
+SwitchCard.propTypes = {
+  entities: PropTypes.arrayOf(PropTypes.object),
+  isLocked: PropTypes.bool,
+};
 
 const Container = styled.div`
   display: flex;
@@ -115,6 +121,8 @@ const ToggleSwitch = styled.label`
   display: inline-block;
   width: 42px;
   height: 24px;
+  cursor: ${(props) => (props.$isLocked ? 'not-allowed' : 'pointer')};
+  opacity: ${(props) => (props.$isLocked ? 0.4 : 1)};
 `;
 
 const SwitchInput = styled.input`

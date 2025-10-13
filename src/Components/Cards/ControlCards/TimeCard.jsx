@@ -1,6 +1,8 @@
+import PropTypes from 'prop-types';
 import styled from 'styled-components';
-import { useHomeAssistant } from "../../Context/HomeAssistantContext"
-const TimeCard = ({ entities }) => {
+import { useHomeAssistant } from "../../Context/HomeAssistantContext";
+
+const TimeCard = ({ entities, isLocked = false }) => {
   const { connection } = useHomeAssistant();
 
   if (!entities || entities.length === 0) {
@@ -8,19 +10,21 @@ const TimeCard = ({ entities }) => {
   }
 
   const handleTimeChange = async (entity, value) => {
-    console.log(entity)
+    if (isLocked) {
+      return;
+    }
+
     if (connection) {
       try {
         await connection.sendMessagePromise({
           type: 'call_service',
-          domain: 'opengrowbox', 
+          domain: 'opengrowbox',
           service: 'update_time',
           service_data: {
             entity_id: entity.entity_id,
             time: value,
           },
         });
-
       } catch (error) {
         console.error('Error updating entity:', error);
       }
@@ -30,21 +34,27 @@ const TimeCard = ({ entities }) => {
   return (
     <Container>
       {entities.map((entity) => (
-      <Card key={entity.entity_id}>
-        <Tooltip>{entity.tooltip}</Tooltip>  {/* Tooltip hier */}
-        <Title>{entity.title}</Title>
-        <TimeInput
-          type="time"
-          value={entity.state}
-          onChange={(e) => handleTimeChange(entity, e.target.value)}
-        />
-      </Card>
+        <Card key={entity.entity_id}>
+          <Tooltip>{entity.tooltip}</Tooltip>
+          <Title>{entity.title}</Title>
+          <TimeInput
+            type="time"
+            value={entity.state}
+            onChange={(e) => handleTimeChange(entity, e.target.value)}
+            disabled={isLocked}
+          />
+        </Card>
       ))}
     </Container>
   );
 };
 
 export default TimeCard;
+
+TimeCard.propTypes = {
+  entities: PropTypes.arrayOf(PropTypes.object),
+  isLocked: PropTypes.bool,
+};
 
 const Container = styled.div`
   display: flex;
@@ -53,7 +63,6 @@ const Container = styled.div`
   width: 100%;
   margin-top: 0.45rem;
 `;
-
 
 const Tooltip = styled.div`
   position: absolute;
@@ -70,9 +79,8 @@ const Tooltip = styled.div`
   transition: opacity 0.2s ease-in-out;
 `;
 
-
 const Card = styled.div`
-  position: relative;  /* wichtig für Tooltip */
+  position: relative;
   background: var(--main-bg-Innercard-color);
   border-radius: 8px;
   padding: 0.2rem;
@@ -95,16 +103,18 @@ const Title = styled.p`
 `;
 
 const TimeInput = styled.input`
-  display:flex;
-  justify-content:space-around;
+  display: flex;
+  justify-content: space-around;
   width: 45%;
   padding: 0.1rem;
   font-size: 0.9rem;
   border-radius: 4px;
   border: none;
   text-align: center;
-  background:var(--secondary-accent);
+  background: var(--secondary-accent);
   color: var(--main-text-color);
+  cursor: ${(props) => (props.disabled ? 'not-allowed' : 'pointer')};
+  opacity: ${(props) => (props.disabled ? 0.5 : 1)};
 
   &::-webkit-calendar-picker-indicator {
     filter: invert(1);
@@ -113,4 +123,5 @@ const TimeInput = styled.input`
   &:focus {
     outline: none;
     background: var(--main-hover-color);
+  }
 `;

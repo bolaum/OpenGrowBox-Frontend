@@ -1,7 +1,8 @@
 
+import PropTypes from 'prop-types';
 import styled from 'styled-components';
 import { useHomeAssistant } from "../../Context/HomeAssistantContext"
-const SelectCard = ({ entities, changesHandler = null }) => {
+const SelectCard = ({ entities, changesHandler = null, isLocked = false }) => {
   const { connection } = useHomeAssistant();
 
   if (!entities || entities.length === 0) {
@@ -9,6 +10,10 @@ const SelectCard = ({ entities, changesHandler = null }) => {
   }
 
   const handleChange = async (entity, newValue) => {
+    if (isLocked) {
+      return;
+    }
+
     if (changesHandler) {
       changesHandler(entity, newValue);
       return;
@@ -50,7 +55,10 @@ const SelectCard = ({ entities, changesHandler = null }) => {
           <Title>{entity.title}</Title>
 
           {isToggle ? (
-            <ToggleWrapper onClick={() => handleChange(entity, isActive ? 'NO' : 'YES')}>
+            <ToggleWrapper
+              $isLocked={isLocked}
+              onClick={() => !isLocked && handleChange(entity, isActive ? 'NO' : 'YES')}
+            >
               <ToggleBackground $isActive={isActive}>
                 <ToggleCircle $isActive={isActive} />
               </ToggleBackground>
@@ -59,6 +67,7 @@ const SelectCard = ({ entities, changesHandler = null }) => {
             <Dropdown
               value={entity.state}
               onChange={(e) => handleChange(entity, e.target.value)}
+              disabled={isLocked}
             >
               {entity.options.map((option, index) => (
                 <option key={index} value={option}>
@@ -75,6 +84,12 @@ const SelectCard = ({ entities, changesHandler = null }) => {
 };
 
 export default SelectCard;
+
+SelectCard.propTypes = {
+  entities: PropTypes.arrayOf(PropTypes.object),
+  changesHandler: PropTypes.func,
+  isLocked: PropTypes.bool,
+};
 
 const Container = styled.div`
   display: flex;
@@ -145,10 +160,11 @@ const Dropdown = styled.select`
 
 /* Toggle Button */
 const ToggleWrapper = styled.div`
-  cursor: pointer;
+  cursor: ${(props) => (props.$isLocked ? 'not-allowed' : 'pointer')};
   display: flex;
   align-items: center;
   justify-content:center;
+  opacity: ${(props) => (props.$isLocked ? 0.4 : 1)};
 `;
 
 const ToggleBackground = styled.div.attrs({
