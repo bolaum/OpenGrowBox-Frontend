@@ -18,9 +18,7 @@ const HistoryChart = ({ sensorId, onClose, minThreshold = 400, maxThreshold = 12
   
   const getDefaultDate = (offset = 0) => {
     const date = new Date(Date.now() + offset);
-    const localISOTime = new Date(date.getTime() - date.getTimezoneOffset() * 60000)
-      .toISOString()
-      .slice(0, 16);
+    const localISOTime = new Date(date.getTime()).toISOString()
     return localISOTime;
   };
 

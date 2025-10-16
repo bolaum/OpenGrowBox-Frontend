@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import styled from 'styled-components';
 import { useGlobalState } from '../Context/GlobalContext';
 import { FaLeaf } from 'react-icons/fa';
@@ -13,13 +13,16 @@ const LoadingIndicator = () => (
   </LoadingContainer>
 );
 
-const GrowMetrics = ({ room = 'default' }) => {
+const GrowMetrics = ({ room = 'default', timeRange, startDate, endDate, isLive = false }) => {
   const [selectedMetric, setSelectedMetric] = useState('all');
-  const [timeRange, setTimeRange] = useState('8h');
+  // const [timeRange, setTimeRange] = useState(() => localStorage.getItem('growMetricsTimeRange') || '8h');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [historicalData, setHistoricalData] = useState([]);
   const [targetValues, setTargetValues] = useState({});
+
+  const abortControllerRef = useRef(null);
+  const activeRequestRef = useRef(null);
 
   const { entities, currentRoom } = useHomeAssistant();
 
@@ -28,14 +31,14 @@ const GrowMetrics = ({ room = 'default' }) => {
   const token = state?.Conf?.haToken;
 
   // Default Werte als Fallback
-  const defaultTargetValues = {
+  const defaultTargetValues = useMemo(() => ({
     vpd: { min: 1.1, max: 1.35, optimal: 1.2 },
     temperature: { min: 22, max: 28, optimal: (22 + 28) / 2 },
     humidity: { min: 50, max: 60, optimal: (50 + 60) / 2 },
     co2: { min: 600, max: 1000, optimal: 800 },
     pH: { min: 5.8, max: 6.2, optimal: 6.0 },
     EC: { min: 400.0, max: 5000, optimal: 2500 },
-  };
+  }), []);
 
   // Sensor Entity IDs - dynamisch aus verfügbaren Entities ermitteln
   const sensorEntities = useMemo(() => {
@@ -175,31 +178,9 @@ const GrowMetrics = ({ room = 'default' }) => {
     });
 
     return result;
-  }, []);
+  }, [controlEntities, defaultTargetValues, entities]);
 
-  const getTimeRangeDate = () => {
-    const now = new Date();
-    let hoursBack = 168; // 7 Tage default
-
-    switch (timeRange) {
-      case '1h': hoursBack = 1; break;
-      case '4h': hoursBack = 4; break;
-      case '8h': hoursBack = 8; break;
-      case '12h': hoursBack = 12; break;
-      case '24h': hoursBack = 24; break;
-      case '7d': hoursBack = 168; break;
-      case '30d': hoursBack = 720; break;
-      default: hoursBack = 168;
-    }
-
-    const startDate = new Date(now.getTime() - hoursBack * 60 * 60 * 1000);
-    return {
-      start: startDate.toISOString().slice(0, 19),
-      end: now.toISOString().slice(0, 19)
-    };
-  };
-
-  const fetchSensorData = async (entityId, startTime, endTime) => {
+  const fetchSensorData = useCallback(async (entityId, startTime, endTime, signal) => {
     const url = `${srvAddr}/api/history/period/${encodeURIComponent(startTime)}?filter_entity_id=${entityId}&end_time=${encodeURIComponent(endTime)}`;
     
     try {
@@ -208,6 +189,7 @@ const GrowMetrics = ({ room = 'default' }) => {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
+        signal,
       });
 
       if (!response.ok) {
@@ -217,26 +199,49 @@ const GrowMetrics = ({ room = 'default' }) => {
       const data = await response.json();
       return data && data.length > 0 ? data[0] : [];
     } catch (err) {
+      if (err?.name === 'AbortError') {
+        return [];
+      }
       console.warn(`Failed to fetch data for ${entityId}:`, err);
       return [];
     }
-  };
+  }, [srvAddr, token]);
 
-  const fetchAllGrowData = async () => {
+  const fetchAllGrowData = useCallback(async () => {
     if (!srvAddr || !token) {
       setError('Home Assistant Server oder Token nicht konfiguriert');
       return;
     }
 
-    setLoading(true);
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+    const requestId = Symbol('growData');
+    activeRequestRef.current = requestId;
+
+    if (!startDate || !endDate) {
+      controller.abort();
+      abortControllerRef.current = null;
+      activeRequestRef.current = null;
+      setLoading(false);
+      return;
+    }
+
+    if (!isLive) {
+      setLoading(true);
+    }
+
     setError(null);
 
     try {
-      const { start, end } = getTimeRangeDate();
-      
+      // const { start, end } = getTimeRangeDate();
+      const start = startDate;
+      const end = endDate;
       // Alle Sensor-Daten parallel laden
       const sensorPromises = Object.entries(sensorEntities).map(async ([metric, entityId]) => {
-        const data = await fetchSensorData(entityId, start, end);
+        const data = await fetchSensorData(entityId, start, end, controller.signal);
         return { metric, data };
       });
 
@@ -272,6 +277,10 @@ const GrowMetrics = ({ room = 'default' }) => {
           timestamp: new Date(reading.timestamp).toISOString()
         }));
 
+      if (activeRequestRef.current !== requestId || controller.signal.aborted) {
+        return;
+      }
+
       setHistoricalData(sortedData);
 
       // Target Values setzen
@@ -279,16 +288,29 @@ const GrowMetrics = ({ room = 'default' }) => {
 
     } catch (err) {
       console.error('Error fetching grow data:', err);
+      if (activeRequestRef.current !== requestId || err?.name === 'AbortError') {
+        return;
+      }
       setError('Fehler beim Laden der Grow-Daten');
     } finally {
-      setLoading(false);
+      if (activeRequestRef.current === requestId) {
+        setLoading(false);
+        activeRequestRef.current = null;
+      }
     }
-  };
+  }, [srvAddr, token, startDate, endDate, sensorEntities, loadedTargetValues, fetchSensorData]);
 
 
   useEffect(() => {
     fetchAllGrowData();
-  }, [timeRange, room, srvAddr, token, loadedTargetValues]);
+
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+      activeRequestRef.current = null;
+    };
+  }, [fetchAllGrowData, timeRange, room, srvAddr, token, loadedTargetValues, startDate, endDate, isLive]);
 
   // Analyse der Daten (gleiche Logik wie vorher)
   const analysis = useMemo(() => {
@@ -317,7 +339,8 @@ const GrowMetrics = ({ room = 'default' }) => {
           average: '0.00',
           min: '0.00',
           max: '0.00',
-          currentValue: '0.00'
+          currentValue: '0.00',
+          isAvailable: false
         };
         return;
       }
@@ -362,7 +385,8 @@ const GrowMetrics = ({ room = 'default' }) => {
         average: (values.reduce((a, b) => a + b, 0) / total).toFixed(2),
         min: Math.min(...values).toFixed(2),
         max: Math.max(...values).toFixed(2),
-        currentValue: values[values.length - 1]?.toFixed(2) || '0.00'
+        currentValue: values[values.length - 1]?.toFixed(2) || '0.00',
+        isAvailable: values[values.length - 1] ? true : false
       };
     });
     
@@ -456,28 +480,14 @@ const GrowMetrics = ({ room = 'default' }) => {
       <Controls>
         <Select value={selectedMetric} onChange={(e) => setSelectedMetric(e.target.value)}>
           <option value="all">All Metrics</option>
-          <option value="pH">pH</option>
-          <option value="EC">EC</option>
-          <option value="temperature">Temperature</option>
-          <option value="humidity">Humidity</option>
-          <option value="co2">CO2</option>
-          <option value="vpd">VPD</option>
-          <option value="lightIntensity">Light Intensity</option>
+          {analysis.pH?.isAvailable && <option value="pH">pH</option>}
+          {analysis.EC?.isAvailable && <option value="EC">EC</option>}
+          {analysis.temperature?.isAvailable && <option value="temperature">Temperature</option>}
+          {analysis.humidity?.isAvailable && <option value="humidity">Humidity</option>}
+          {analysis.co2?.isAvailable && <option value="co2">CO2</option>}
+          {analysis.vpd?.isAvailable && <option value="vpd">VPD</option>}
+          {analysis.lightIntensity?.isAvailable && <option value="lightIntensity">Light Intensity</option>}
         </Select>
-        
-        <Select value={timeRange} onChange={(e) => setTimeRange(e.target.value)}>
-          <option value="1h">Last 1 hours</option>
-          <option value="4h">Last 4 hours</option>
-          <option value="8h">Last 8 hours</option>
-          <option value="12h">Last 12 hours</option>
-          <option value="24h">Last 24 hours</option>
-          <option value="7d">Last 7 days</option>
-          <option value="30d">Last 30 days</option>
-        </Select>
-
-        <RefreshButton onClick={fetchAllGrowData}>
-          🔄 Refresh
-        </RefreshButton>
       </Controls>
 
       <DataStats>
@@ -521,7 +531,7 @@ const GrowMetrics = ({ room = 'default' }) => {
       <Summary>
         <SummaryTitle>Performance Summary</SummaryTitle>
         <SummaryGrid>
-          {Object.entries(analysis).map(([metric, data]) => (
+          {Object.entries(analysis).filter(([, { isAvailable }]) => isAvailable).map(([metric, data]) => (
             <SummaryItem key={metric}>
               <SummaryMetric>{metric}</SummaryMetric>
               <OptimalIndicator>
@@ -543,7 +553,7 @@ const GrowMetrics = ({ room = 'default' }) => {
 
       <MetricsGrid>
         {Object.entries(analysis)
-          .filter(([metric]) => selectedMetric === 'all' || selectedMetric === metric)
+          .filter(([metric, { isAvailable }]) => (selectedMetric === 'all' || selectedMetric === metric) && isAvailable)
           .map(([metric, data]) => (
             <MetricCard key={metric}>
               <MetricHeader>
@@ -714,20 +724,6 @@ const NoDataMessage = styled.div`
 const DataInfo = styled.div`
   font-size: 0.8rem;
   opacity: 0.6;
-`;
-
-const RefreshButton = styled.button`
-  padding: 0.5rem 1rem;
-  background: rgba(255, 255, 255, 0.1);
-  color: var(--main-text-color);
-  border: 1px solid rgba(125, 125, 125, 0.3);
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 0.8rem;
-
-  &:hover {
-    background: rgba(255, 255, 255, 0.15);
-  }
 `;
 
 const DataStats = styled.div`

@@ -1,7 +1,7 @@
 
 import styled from 'styled-components';
 import { useHomeAssistant } from "../../Context/HomeAssistantContext"
-const SelectCard = ({ entities }) => {
+const SelectCard = ({ entities, changesHandler = null }) => {
   const { connection } = useHomeAssistant();
 
   if (!entities || entities.length === 0) {
@@ -9,7 +9,10 @@ const SelectCard = ({ entities }) => {
   }
 
   const handleChange = async (entity, newValue) => {
-
+    if (changesHandler) {
+      changesHandler(entity, newValue);
+      return;
+    }
 
     if (connection) {
       try {

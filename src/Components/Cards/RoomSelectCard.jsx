@@ -70,7 +70,7 @@ const RoomSelectCard = ({title}) => {
 
   return (
     <InfoContainer>
-      <Label>{title}</Label>      
+      {title && <Label>{title}</Label>}
 
       <DropdownContainer ref={dropdownRef}>
         <DropdownHeader onClick={() => setIsOpen(!isOpen)}>
