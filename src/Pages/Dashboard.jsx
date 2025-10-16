@@ -69,6 +69,12 @@ const Dashboard = () => {
   const [isLive, setIsLive] = useState(() => localStorage.getItem('dashboardIsLive') === 'true');
   const { startDate, endDate } = useViewDates(selectedView, isLive);
   
+  const [targetValues, setTargetValues] = useState({
+    vpd: null,
+    temperature: null,
+    humidity: null,
+  });
+  
   useEffect(() => {
     localStorage.setItem('selectedView', selectedView);
   }, [selectedView]);
@@ -95,12 +101,36 @@ const Dashboard = () => {
       setCo2Sensors(sensors);
     };
     updateCo2Sensors();
-  }, [entities]);
+    
+    const lRoom = currentRoom.toLowerCase();
+    
+    const tValues = {
+      vpd: {
+        min: entities[`sensor.ogb_current_vpd_target_min_${lRoom}`]?.state || null,
+        max: entities[`sensor.ogb_current_vpd_target_max_${lRoom}`]?.state || null,
+        optimal: entities[`sensor.ogb_current_vpd_target_${lRoom}`]?.state || null,
+      },
+      
+      temperature: {
+        min: entities[`number.ogb_mintemp_${lRoom}`]?.state || null,
+        max: entities[`number.ogb_maxtemp_${lRoom}`]?.state || null,
+        optimal: entities[`number.ogb_opttemp_${lRoom}`]?.state || null,
+      }, 
+      
+      humidity: {
+        min: entities[`number.ogb_minhum_${lRoom}`]?.state || null,
+        max: entities[`number.ogb_maxhum_${lRoom}`]?.state || null,
+        optimal: entities[`number.ogb_opthum_${lRoom}`]?.state || null,
+      },
+    };
+    
+    setTargetValues(tValues);
+  }, [entities, currentRoom]);
 
   const vpdSensor = `sensor.ogb_currentvpd_${currentRoom}`;
   const avgTempSensor = `sensor.ogb_avgtemperature_${currentRoom}`;
   const avgHumSensor = `sensor.ogb_avghumidity_${currentRoom}`;
-
+  
   if (!currentRoom) {
     return <></>;
   }
@@ -167,6 +197,7 @@ const Dashboard = () => {
             selectedView={selectedView}
             startDate={startDate}
             endDate={endDate}
+            targetValues={targetValues.vpd}
           />
           <DashboardChart 
             sensorId={avgTempSensor} 
@@ -176,6 +207,7 @@ const Dashboard = () => {
             selectedView={selectedView}
             startDate={startDate}
             endDate={endDate}
+            targetValues={targetValues.temperature}
           />
           <DashboardChart 
             sensorId={avgHumSensor} 
@@ -184,7 +216,9 @@ const Dashboard = () => {
             isLive={isLive} 
             selectedView={selectedView}
             startDate={startDate}
-            endDate={endDate}/>
+            endDate={endDate}
+            targetValues={targetValues.humidity}
+          />
 
           {co2Sensors && co2Sensors.length > 0 && 
           co2Sensors.map((sensor) => (

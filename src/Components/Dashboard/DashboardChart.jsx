@@ -6,7 +6,7 @@ import { FaLeaf } from 'react-icons/fa';
 
 const SensorChart = ({ 
   sensorId, minThreshold = 0, maxThreshold = 2000, title = 'Sensor Trends (24h)', unit = '', 
-  isLive = false, selectedView, startDate, endDate
+  isLive = false, selectedView, startDate, endDate, targetValues = null
 }) => {
   const {state} = useGlobalState();
   const srvAddr = state?.Conf?.hassServer
@@ -187,7 +187,32 @@ const SensorChart = ({
               lineStyle: {
                 width: 4
               }
-            }
+            },
+            markLine: targetValues !== null
+              ? {
+                  silent: true,
+                  symbol: 'none',
+                  data: [
+                    targetValues.optimal ? {
+                      yAxis: targetValues.optimal,
+                      lineStyle: {
+                        color: 'rgba(255, 82, 82, 0.55)',
+                        width: 2,
+                        type: 'solid'
+                      },
+                      label: {
+                        show: false,
+                        position: 'insideMiddleTop',
+                        formatter: () => `${targetValues.optimal}${unit}`,
+                        color: 'rgba(255, 255, 255, 0.85)',
+                        backgroundColor: 'rgba(255, 82, 82, 0.35)',
+                        padding: [4, 6],
+                        borderRadius: 4
+                      }
+                    } : undefined,                    
+                  ].filter(v => !!v)
+                }
+              : undefined
           }]
         });
       } catch (err) {
@@ -210,7 +235,7 @@ const SensorChart = ({
     };
   }, [
     startDate, endDate, isLive, sensorId, srvAddr, accessToken,
-    minThreshold, maxThreshold, selectedView, title, unit
+    minThreshold, maxThreshold, selectedView, title, unit, targetValues
   ]);
 
   return (
