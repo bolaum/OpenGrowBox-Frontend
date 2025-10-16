@@ -16,7 +16,7 @@ const DEV_CONFIG = {
 const premiumLaunchDate = new Date('2025-12-01T00:00:00Z'); 
 const PREMIUM_RELEASE_DATE = new Date("2025-12-01T00:00:00Z");
 
-const DEFAULT_LOCALE = 'de-DE';
+const DEFAULT_LOCALE = 'pt-BR';
 
 export {
   ogbversions,

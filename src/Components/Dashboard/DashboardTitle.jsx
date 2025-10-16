@@ -47,7 +47,8 @@ const DashboardTitle = ({firstText,secondText,thirdText}) => {
           <CannabisIcon/>
         </motion.div>
       </AnimatePresence>
-
+      
+      <ModBy/>
 
     </TitleContainer>
   );
@@ -69,6 +70,27 @@ const CannabisIcon = () => (
   </motion.span>
 );
 
+const ModBy = ()  => (
+  <motion.span
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    exit={{ opacity: 0 }}
+    transition={{
+      duration: 5,
+      repeat: Infinity,
+      repeatType: "mirror",
+    }}
+    style={{ 
+      display: 'inline-block',
+      fontSize: 'small', 
+      alignSelf: 'end',
+      marginBottom: '5px',
+      transform: 'scale(0.8, 1) translate(-27px, 7px)'
+    }}
+  >
+    bolaum mod
+  </motion.span>
+);
 
 const TitleContainer = styled.div`
   display: flex;
