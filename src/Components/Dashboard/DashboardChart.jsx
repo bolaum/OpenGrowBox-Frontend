@@ -3,6 +3,7 @@ import styled, { keyframes } from 'styled-components';
 import ReactECharts from 'echarts-for-react';
 import { useGlobalState } from '../Context/GlobalContext';
 import { FaLeaf } from 'react-icons/fa';
+import { DEFAULT_LOCALE } from '../../config';
 
 const SensorChart = ({ 
   sensorId, minThreshold = 0, maxThreshold = 2000, title = 'Sensor Trends (24h)', unit = '', 
@@ -84,7 +85,7 @@ const SensorChart = ({
             },
             formatter: params => {
               const point = params[0];
-              const time = new Date(point.axisValue).toLocaleString('de-DE', {
+              const time = new Date(point.axisValue).toLocaleString(DEFAULT_LOCALE, {
                 day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'
               });
               return `
@@ -119,7 +120,7 @@ const SensorChart = ({
               margin: 15,
               formatter: value => {
                 const date = new Date(value);
-                return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                return date.toLocaleTimeString(DEFAULT_LOCALE, { hour: '2-digit', minute: '2-digit' });
               }
             },
             splitLine: {
@@ -127,6 +128,17 @@ const SensorChart = ({
               lineStyle: {
                 color: 'rgba(255, 255, 255, 0.05)',
                 type: 'dashed'
+              }
+            },
+            axisPointer: {
+              label: {
+                formatter: params => {
+                  const point = params.value;
+                  const time = new Date(point).toLocaleString(DEFAULT_LOCALE, {
+                    day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'
+                  });
+                  return time;
+                }
               }
             }
           },

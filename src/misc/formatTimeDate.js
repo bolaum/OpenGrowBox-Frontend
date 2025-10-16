@@ -1,7 +1,9 @@
+import { DEFAULT_LOCALE } from "../config";
+
 export function formatDateTime(dateString) {
   if (!dateString) return 'Not Available';
   const date = new Date(dateString);
-  return new Intl.DateTimeFormat('de-DE', {
+  return new Intl.DateTimeFormat(DEFAULT_LOCALE, {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',

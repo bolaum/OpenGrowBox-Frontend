@@ -4,7 +4,7 @@ import { useHomeAssistant } from '../Context/HomeAssistantContext';
 import LoginModal from '../Premium/LoginModal';
 import {formatDateTime} from '../../misc/formatTimeDate'
 import { usePremium } from '../Context/OGBPremiumContext';
-import { DEV_CONFIG } from '../../config';
+import { DEFAULT_LOCALE, DEV_CONFIG } from '../../config';
 
 // Premium Animations
 const shimmer = keyframes`
@@ -60,7 +60,7 @@ const getDaysUntilLaunch = () => {
 };
 
 const formatLaunchDate = () => {
-  return FIXED_LAUNCH_CONFIG.LAUNCH_DATE.toLocaleDateString('de-DE', {
+  return FIXED_LAUNCH_CONFIG.LAUNCH_DATE.toLocaleDateString(DEFAULT_LOCALE, {
     year: 'numeric',
     month: 'long',
     day: 'numeric'

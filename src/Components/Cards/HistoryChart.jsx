@@ -4,6 +4,7 @@ import ReactECharts from 'echarts-for-react';
 
 import { useGlobalState } from '../Context/GlobalContext';
 import { FaLeaf, FaTimes } from 'react-icons/fa';
+import { DEFAULT_LOCALE } from '../../config';
 
 const LoadingIndicator = () => (
   <LoadingContainer>
@@ -119,7 +120,7 @@ const HistoryChart = ({ sensorId, onClose, minThreshold = 400, maxThreshold = 12
           },
           formatter: params => {
             const point = params[0];
-            const time = new Date(point.axisValue).toLocaleString('de-DE', {
+            const time = new Date(point.axisValue).toLocaleString(DEFAULT_LOCALE, {
               day: '2-digit', 
               month: '2-digit', 
               hour: '2-digit', 
@@ -171,7 +172,7 @@ const HistoryChart = ({ sensorId, onClose, minThreshold = 400, maxThreshold = 12
             fontSize: 11,
             fontWeight: '500',
             formatter: value =>
-              new Date(value).toLocaleTimeString([], { 
+              new Date(value).toLocaleTimeString(DEFAULT_LOCALE, { 
                 hour: '2-digit', 
                 minute: '2-digit' 
               }),

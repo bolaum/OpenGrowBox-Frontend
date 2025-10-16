@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { useHomeAssistant } from '../Context/HomeAssistantContext';
+import { DEFAULT_LOCALE } from '../../config';
 
 const LogItem = ({ room, date, info }) => {
   // Parse the info if it's a string
@@ -268,7 +269,7 @@ const LogItem = ({ room, date, info }) => {
                 <PIDActionDetails>
                   <PIDReason>{action.reason}</PIDReason>
                   <PIDTimestamp>
-                    {new Date(action.timestamp).toLocaleTimeString('de-DE')}
+                    {new Date(action.timestamp).toLocaleTimeString(DEFAULT_LOCALE)}
                   </PIDTimestamp>
                 </PIDActionDetails>
               </PIDActionItem>
@@ -453,7 +454,7 @@ const GrowLogs = () => {
       
       const newLog = {
         room: roomName,
-        date: new Date(event.time_fired).toLocaleString('de-DE'),
+        date: new Date(event.time_fired).toLocaleString(DEFAULT_LOCALE),
         info: JSON.stringify(event.data)
       };
       setLogs((prevLogs) => [newLog, ...prevLogs.slice(0, 199)]); // Keep only last 200 logs for performance

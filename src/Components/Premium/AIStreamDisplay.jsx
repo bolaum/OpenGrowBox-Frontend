@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import styled, { keyframes, css } from 'styled-components';
 import { useHomeAssistant } from '../Context/HomeAssistantContext';
+import { DEFAULT_LOCALE } from '../../config';
 
 export default function AIStreamDisplay({ onClose }) {
   const [messages, setMessages] = useState([]);
@@ -80,7 +81,7 @@ export default function AIStreamDisplay({ onClose }) {
   }, []);
 
   const formatTime = (timestamp) => {
-    return timestamp.toLocaleTimeString('de-DE', { 
+    return timestamp.toLocaleTimeString(DEFAULT_LOCALE, { 
       hour: '2-digit', 
       minute: '2-digit',
       second: '2-digit'
@@ -176,7 +177,7 @@ export default function AIStreamDisplay({ onClose }) {
           <StatusItem>Status: {isConnected ? 'Streaming' : 'Reconnecting...'}</StatusItem>
         </StatusLeft>
         <StatusRight>
-          Last update: {new Date().toLocaleTimeString('de-DE')}
+          Last update: {new Date().toLocaleTimeString(DEFAULT_LOCALE)}
         </StatusRight>
       </StatusBar>
     </Container>
